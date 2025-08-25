@@ -2,11 +2,13 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { isNativeError } from "node:util/types";
 import { z } from "zod";
-//import dotenv from 'dotenv';
 import { validateEnv } from './config/validation.js';
+import {
+  getDocumentsByKeyword,
+  repository,
+} from "./schemas/service.js";
 
 //환경변수 로드 및 검증
-//dotenv.config();
 const env = validateEnv();
 console.log('환경변수 검증 완료:', env);
 
@@ -15,20 +17,6 @@ const server = new McpServer({
   description: "MCP-compatible toolset for integrating with nicepayments systems. Includes tools for retrieving LLM-structured text and fetching actual documentation through URLs. (나이스페이먼츠 시스템과의 연동을 위한 MCP 도구 모음입니다. LLM이 활용할 수 있는 텍스트 및 관련 문서를 가져오는 기능을 포함합니다.)",
   version: "1.0.0",
 });
-
-import {
-  // getV1DocumentsByKeyword,
-  // getV2DocumentsByKeyword,
-  getDocumentsByKeyword,
-  repository,
-} from "./schemas/service.js";
-
-// const server = new McpServer({
-//   name: "nicepayments-integration-guide",
-//   description:
-//     "MCP-compatible toolset for integrating with nicepayments systems. Includes tools for retrieving LLM-structured text and fetching actual documentation through URLs. (나이스페이먼츠 시스템과의 연동을 위한 MCP 도구 모음입니다. LLM이 활용할 수 있는 텍스트 및 관련 문서를 가져오는 기능을 포함합니다.)",
-//   version: "1.0.0",
-// });
 
 // 문서 검색 스키마
 const GetDocumentSchema = {
@@ -52,14 +40,27 @@ server.tool(
   { id: z.string().describe("문서별 id 값") },
   async ({ id }: { id: string }) => {
     try {
-      const docs = repository.findOneById(Number(id));
+      const docId = parseInt(id);
+      if (isNaN(docId)) {
+        return {
+          content: [{ type: "text", text: "잘못된 문서 ID 형식입니다. 숫자를 입력해주세요." }],
+          isError: true,
+        };
+      }
+      
+      const docs = repository.findOneById(docId);
+      if (!docs) {
+        return {
+          content: [{ type: "text", text: `ID ${id}에 해당하는 문서를 찾을 수 없습니다.` }],
+          isError: true,
+        };
+      }
+      
       return { content: [{ type: "text", text: docs.content }] };
     } catch (e) {
-      const errorMessage = isNativeError(e) ? e.message : "unknown error";
+      const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
       return {
-        content: [
-          { type: "text", text: `문서 가져오기 실패: ${errorMessage}` },
-        ],
+        content: [{ type: "text", text: `문서 가져오기 실패: ${errorMessage}` }],
         isError: true,
       };
     }

@@ -3,7 +3,7 @@ dotenv.config();
 
 export const CONFIG = {
   data: {
-    path: process.env.NICEPAY_DATA_PATH || './src/llm',
+    path: process.env.NICEPAY_DATA_PATH || './src/llm/llms.txt',
     baseUrl: process.env.NICEPAY_BASE_URL || 'https://github.com/supersignal/going_on_hypersonic/blob/main'
   },
   search: {
@@ -21,6 +21,6 @@ export const CONFIG = {
 
 export const GITHUB_CONFIG = {
   baseUrl: process.env.NICEPAY_BASE_URL || 'https://github.com/supersignal/going_on_hypersonic/blob/main',
-  markdownPath: '/src/markdown',
-  llmPath: '/src/llm'
+  markdownPath: process.env.NICEPAY_MARKDOWN_PATH || '/src/markdown',
+  llmPath: process.env.NICEPAY_LLM_PATH || '/src/llm'
 };
