@@ -41,33 +41,24 @@ Cursor, Claude, GitHub Copilot등과 같은 AI 개발 도구와 연동되어 실
 ### 2.1 전체 아키텍처
 
 ```mermaid
-flowchart TB
-    %% 클라이언트 계층
-    A[Client (Cursor / AI Tool)] --> B[MCP Server]
+graph LR
+  A[Client] --> B[MCP Server]
+  B --> C[Service Layer]
+  C --> D[Repository Layer]
+  D --> E[Document Processing]
+  E --> F[BM25 Search Engine]
+  E --> G[Markdown Parser]
+  G --> H[Local Files]
 
-    %% 서버 계층
-    B --> C[Service Layer]
-    C --> D[Repository Layer]
+  subgraph PIPELINE [Document Processing Pipeline]
+    I[Raw LLM Text] --> J[Parse Documents]
+    J --> K[Fetch Markdown]
+    K --> L[Split into Chunks]
+    L --> M[Extract Metadata]
+    M --> N[Index for Search]
+  end
 
-    %% 문서 처리 계층
-    D --> E[Document Processing]
-
-    %% 파서 및 저장소
-    E --> G[Markdown Parser]
-    G --> H[Local Files (llms.txt)]
-    E --> F[BM25 Search Engine]
-
-    %% 하위 파이프라인
-    subgraph PIPELINE ["Document Processing Pipeline"]
-        I[Raw LLM Text] --> J[Parse Documents]
-        J --> K[Fetch Markdown]
-        K --> L[Split into Chunks]
-        L --> M[Extract Metadata]
-        M --> N[Index for Search]
-    end
-
-    %% 파이프라인과 상위 계층 연결
-    E --> PIPELINE
+  E --> PIPELINE
 ```
 
 ### 2.2 레이어별 구조
