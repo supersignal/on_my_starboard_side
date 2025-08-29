@@ -8,7 +8,7 @@ import { getDocumentsByKeyword, repository, } from "./schemas/service.js";
 const env = validateEnv();
 console.log('환경변수 검증 완료:', env);
 const server = new McpServer({
-    name: "nicepayments-integration-guide",
+    name: "nicepayments-developers-guide",
     description: "MCP-compatible toolset for integrating with nicepayments systems. Includes tools for retrieving LLM-structured text and fetching actual documentation through URLs. (나이스페이먼츠 시스템과의 연동을 위한 MCP 도구 모음입니다. LLM이 활용할 수 있는 텍스트 및 관련 문서를 가져오는 기능을 포함합니다.)",
     version: "1.0.0",
 });

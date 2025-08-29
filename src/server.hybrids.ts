@@ -1,0 +1,119 @@
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import express from "express";
+import cors from "cors";
+import { z } from "zod";
+import { isNativeError } from "node:util/types";
+import { validateEnv } from './config/validation.js';
+import {
+    getDocumentsByKeyword,
+    repository,
+} from "./schemas/service.js";
+
+// 환경변수 검증
+const env = validateEnv();
+console.log('환경변수 검증 완료:', env);
+
+// MCP 서버 인스턴스
+const mcpServer = new McpServer({
+    name: "nicepayments-integration-guide",
+    description: "MCP-compatible toolset for integrating with nicepayments systems.",
+    version: "1.0.0",
+});
+
+// 공용 Zod 스키마
+const GetDocumentSchema = {
+    keywords: z.array(z.string()).describe("UTF-8 인코딩된 문자열 배열"),
+};
+
+// MCP 툴 등록
+mcpServer.tool(
+    "get_documents",
+    `나이스페이먼츠 문서들을 버전 구분 없이 조회합니다.\n키워드 기반으로 v1, v2, general 문서를 모두 검색합니다.`,
+    GetDocumentSchema,
+    async ({ keywords }: { keywords: string[] }) => {
+        return await getDocumentsByKeyword(keywords);
+    }
+);
+
+mcpServer.tool(
+    "document-details",
+    `문서의 원본 ID 로 해당 문서의 전체 내용을 조회합니다.`,
+    { id: z.string().describe("문서별 id 값") },
+    async ({ id }: { id: string }) => {
+        try {
+            const docId = parseInt(id);
+            if (isNaN(docId)) {
+                return {
+                    content: [{ type: "text", text: "잘못된 문서 ID 형식입니다. 숫자를 입력해주세요." }],
+                    isError: true,
+                };
+            }
+            const docs = repository.findOneById(docId);
+            if (!docs) {
+                return {
+                    content: [{ type: "text", text: `ID ${id}에 해당하는 문서를 찾을 수 없습니다.` }],
+                    isError: true,
+                };
+            }
+            return { content: [{ type: "text", text: docs.content }] };
+        } catch (e) {
+            const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
+            return {
+                content: [{ type: "text", text: `문서 가져오기 실패: ${errorMessage}` }],
+                isError: true,
+            };
+        }
+    }
+);
+
+// HTTP 서버 (외부 접근용 REST 브리지)
+const app = express();
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
+app.use(cors({ origin: '*', credentials: false }));
+app.use(express.json());
+
+app.get('/health', (_req, res) => {
+    res.json({ ok: true, version: '1.0.0' });
+});
+
+app.post('/mcp/get_documents', async (req, res) => {
+    const schema = z.object({ keywords: z.array(z.string()).min(1) });
+    const parsed = schema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ isError: true, error: parsed.error.flatten() });
+    try {
+        const result = await getDocumentsByKeyword(parsed.data.keywords);
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ isError: true, error: e instanceof Error ? e.message : 'unknown error' });
+    }
+});
+
+app.get('/mcp/document-details/:id', async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) return res.status(400).json({ isError: true, error: 'invalid id' });
+    try {
+        const doc = repository.findOneById(id);
+        if (!doc) return res.status(404).json({ isError: true, error: 'not found' });
+        res.json({ content: [{ type: 'text', text: doc.content }] });
+    } catch (e) {
+        res.status(500).json({ isError: true, error: e instanceof Error ? e.message : 'unknown error' });
+    }
+});
+
+async function main() {
+    // 1) 로컬(MCP 클라이언트)용 stdio 연결
+    const stdio = new StdioServerTransport();
+    await mcpServer.connect(stdio);
+
+    // 2) 외부 접근용 HTTP 서버 기동
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Hybrid MCP server up. HTTP: http://0.0.0.0:${PORT}`);
+    });
+}
+
+main().catch((error) => {
+    console.error('Server error:', error);
+    process.exit(1);
+});
