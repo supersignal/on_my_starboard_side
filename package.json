@@ -54,6 +54,8 @@
     "build": "tsc",
     "lint": "eslint . --ext .js,.ts",
     "start": "node dist/server.js",
+    "start-http": "node dist/server.http.js",
+    "start-hybrid": "node dist/server.hybrid.js",
     "test:ci": "CI=true vitest --run"
   }
 }

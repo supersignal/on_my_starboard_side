@@ -8,7 +8,7 @@ echo Working directory: %cd%
 echo.
 
 REM Check if build exists
-if not exist "dist\server.js" (
+if not exist "dist\server.hybrid.js" (
     echo Building the server...
     npm run build
     echo.
@@ -18,4 +18,4 @@ REM Run the server
 echo MCP server is running...
 echo Waiting for connection from Cursor...
 echo.
-node dist\server.js
+node dist\server.hybrid.js
