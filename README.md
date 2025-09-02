@@ -169,20 +169,20 @@ curl -s http://localhost:3000/mcp/document-details/5 \
 
 ### 설치/빌드
 ```bash
-pnpm install
-pnpm run build
+npm install
+npm run build
 ```
 
 ### 실행
 ```bash
 # MCP(stdio)
-pnpm start
+npm start
 
 # HTTP
-pnpm run start-http
+npm run start-http
 
 # Hybrid
-pnpm run start-hybrid
+npm run start-hybrid
 ```
 
 ### 환경변수 (.env 예시: `env.example` 참고)
