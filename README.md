@@ -42,70 +42,99 @@ Cursor, Claude, GitHub Copilot등과 같은 AI 개발 도구와 연동되어 실
 
 ```mermaid
 graph TB
-    %% 클라이언트 영역
-    subgraph CLIENT_ZONE [" 🖥️ Client Zone "]
-        A[👤 Client Application]
+    %% GitHub 저장소 영역
+    subgraph GITHUB_ZONE [" 🐙 GitHub Repository "]
+        GH_REPO[📁 GitHub Repository]
+        LLMS_TXT[📄 llms.txt]
+        MD_FILES[📝 Markdown Files]
+        MCP_SOURCE[💾 MCP Server Source Code]
+        
+        GH_REPO --> LLMS_TXT
+        GH_REPO --> MD_FILES
+        GH_REPO --> MCP_SOURCE
     end
     
-    %% 서버 영역
-    subgraph SERVER_ZONE [" 🌐 Server Infrastructure "]
-        B[🔗 MCP Server]
-        C[⚙️ Service Layer]
-        D[🗄️ Repository Layer]
+    %% 클라우드 MCP 서버 영역
+    subgraph CLOUD_ZONE [" ☁️ Cloud MCP Service "]
+        CLOUD_SERVER[🌐 Internet-Connected MCP Server]
+        API_ENDPOINT[🔗 API Endpoint]
+        DOC_PROCESSOR[📋 Document Processor]
+        SEARCH_ENGINE[🔍 BM25 Search Engine]
+        
+        CLOUD_SERVER --> API_ENDPOINT
+        CLOUD_SERVER --> DOC_PROCESSOR
+        CLOUD_SERVER --> SEARCH_ENGINE
     end
     
-    %% 문서 처리 영역
-    subgraph DOC_ZONE [" 📝 Document Processing Zone "]
-        E[📋 Document Processing Engine]
-        F[🔍 BM25 Search Engine]
-        G[📄 Markdown Parser]
+    %% 고객사 API 이용 영역
+    subgraph API_CLIENT_ZONE [" 🏢 Enterprise API Clients "]
+        API_CLIENT[👥 Enterprise Customer]
+        KEYWORD_SEARCH[🔎 Keyword Search Service]
+        
+        API_CLIENT --> KEYWORD_SEARCH
     end
     
-    %% 저장소 영역
-    subgraph STORAGE_ZONE [" 💾 Storage Layer "]
-        H[📁 Local Files]
+    %% 로컬 개발 환경 영역
+    subgraph LOCAL_DEV_ZONE [" 💻 Local Development Environment "]
+        LOCAL_MCP[🏠 Local MCP Server]
+        
+        subgraph DEV_TOOLS [" 🛠️ Development Tools "]
+            CLAUDE[🤖 Claude]
+            CURSOR[✏️ Cursor]
+            CHATGPT[💬 ChatGPT]
+            COPILOT[🔧 GitHub Copilot]
+        end
+        
+        LOCAL_MCP --> DEV_TOOLS
     end
     
-    %% 파이프라인 영역
+    %% 문서 처리 파이프라인
     subgraph PIPELINE [" 🔄 Document Processing Pipeline "]
         direction TB
-        I[📝 Raw LLM Text] 
-        J[🔍 Parse Documents]
-        K[📥 Fetch Markdown]
-        L[✂️ Split into Chunks]
-        M[🏷️ Extract Metadata]
-        N[📊 Index for Search]
+        DOWNLOAD[📥 Download Files]
+        PARSE[🔍 Parse Documents]
+        CHUNK[✂️ Split into Chunks]
+        METADATA[🏷️ Extract Metadata]
+        INDEX[📊 Create Search Index]
         
-        I --> J
-        J --> K
-        K --> L
-        L --> M
-        M --> N
+        DOWNLOAD --> PARSE
+        PARSE --> CHUNK
+        CHUNK --> METADATA
+        METADATA --> INDEX
     end
     
     %% 연결 관계
-    A -->|API Request| B
-    B -->|Process| C
-    C -->|Data Access| D
-    D -->|Document Request| E
-    E -->|Search Query| F
-    E -->|Parse Request| G
-    G -->|File Access| H
-    E -.->|Triggers| PIPELINE
-    N -.->|Indexed Data| F
+    %% GitHub에서 클라우드 서버로 파일 다운로드
+    LLMS_TXT -->|Download| CLOUD_SERVER
+    MD_FILES -->|Download| CLOUD_SERVER
+    
+    %% GitHub에서 로컬로 소스코드 다운로드
+    MCP_SOURCE -->|Clone/Download| LOCAL_MCP
+    LLMS_TXT -.->|Download| LOCAL_MCP
+    MD_FILES -.->|Download| LOCAL_MCP
+    
+    %% 클라우드 서버 처리 흐름
+    CLOUD_SERVER -->|Triggers| PIPELINE
+    INDEX -->|Feeds| SEARCH_ENGINE
+    
+    %% API 접근
+    KEYWORD_SEARCH -->|API Request| API_ENDPOINT
+    API_ENDPOINT -->|Search Results| KEYWORD_SEARCH
     
     %% 스타일링
-    classDef clientStyle fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b
-    classDef serverStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#4a148c
-    classDef docStyle fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
-    classDef storageStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#e65100
-    classDef pipelineStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#c2185b
+    classDef githubStyle fill:#f6f8fa,stroke:#24292e,stroke-width:3px,color:#24292e
+    classDef cloudStyle fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#1565c0
+    classDef apiStyle fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
+    classDef localStyle fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#ef6c00
+    classDef toolStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#c2185b
+    classDef pipelineStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#7b1fa2
     
-    class A clientStyle
-    class B,C,D serverStyle
-    class E,F,G docStyle
-    class H storageStyle
-    class I,J,K,L,M,N pipelineStyle
+    class GH_REPO,LLMS_TXT,MD_FILES,MCP_SOURCE githubStyle
+    class CLOUD_SERVER,API_ENDPOINT,DOC_PROCESSOR,SEARCH_ENGINE cloudStyle
+    class API_CLIENT,KEYWORD_SEARCH apiStyle
+    class LOCAL_MCP localStyle
+    class CLAUDE,CURSOR,CHATGPT,COPILOT toolStyle
+    class DOWNLOAD,PARSE,CHUNK,METADATA,INDEX pipelineStyle
 ```
 
 ### 2.2 레이어별 구조
