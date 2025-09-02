@@ -6,6 +6,9 @@ import { z } from "zod";
 import { isNativeError } from "node:util/types";
 import { validateEnv } from './config/validation.js';
 import { getDocumentsByKeyword, repository, } from "./schemas/service.js";
+import { apiKeyAuth, optionalApiKeyAuth } from './middleware/auth.js';
+import { searchRateLimit, generalRateLimit, healthRateLimit } from './middleware/rate-limit.js';
+import { errorHandler, notFoundHandler, requestIdMiddleware, asyncHandler } from './middleware/error-handler.js';
 // 환경변수 검증
 const env = validateEnv();
 console.log('환경변수 검증 완료:', env);
@@ -52,38 +55,66 @@ mcpServer.tool("document-details", `문서의 원본 ID 로 해당 문서의 전
 // HTTP 서버 (외부 접근용 REST 브리지)
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+// 기본 미들웨어
 app.use(cors({ origin: '*', credentials: false }));
 app.use(express.json());
-app.get('/health', (_req, res) => {
-    res.json({ ok: true, version: '1.0.0' });
-});
-app.post('/mcp/get_documents', async (req, res) => {
-    const schema = z.object({ keywords: z.array(z.string()).min(1) });
+app.use(requestIdMiddleware);
+// 보안 미들웨어 적용
+app.use('/mcp', apiKeyAuth); // MCP 엔드포인트는 API 키 필수
+app.use('/health', optionalApiKeyAuth); // 헬스체크는 선택적 인증
+// Rate Limiting 적용
+app.use('/health', healthRateLimit);
+app.use('/mcp/get_documents', searchRateLimit);
+app.use('/mcp/document-details', generalRateLimit);
+// 헬스체크 엔드포인트
+app.get('/health', asyncHandler(async (req, res) => {
+    res.json({
+        ok: true,
+        version: '1.0.0',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+}));
+// 문서 검색 엔드포인트
+app.post('/mcp/get_documents', asyncHandler(async (req, res) => {
+    const schema = z.object({
+        keywords: z.array(z.string().min(1)).min(1).max(10).describe("검색 키워드 배열 (1-10개)")
+    });
     const parsed = schema.safeParse(req.body);
-    if (!parsed.success)
-        return res.status(400).json({ isError: true, error: parsed.error.flatten() });
-    try {
-        const result = await getDocumentsByKeyword(parsed.data.keywords);
-        res.json(result);
+    if (!parsed.success) {
+        return res.status(400).json({
+            isError: true,
+            error: 'Invalid request',
+            details: parsed.error.flatten()
+        });
     }
-    catch (e) {
-        res.status(500).json({ isError: true, error: e instanceof Error ? e.message : 'unknown error' });
-    }
-});
-app.get('/mcp/document-details/:id', async (req, res) => {
+    const result = await getDocumentsByKeyword(parsed.data.keywords);
+    res.json(result);
+}));
+// 문서 상세 조회 엔드포인트
+app.get('/mcp/document-details/:id', asyncHandler(async (req, res) => {
     const id = Number(req.params.id);
-    if (!Number.isFinite(id))
-        return res.status(400).json({ isError: true, error: 'invalid id' });
-    try {
-        const doc = repository.findOneById(id);
-        if (!doc)
-            return res.status(404).json({ isError: true, error: 'not found' });
-        res.json({ content: [{ type: 'text', text: doc.content }] });
+    if (!Number.isFinite(id) || id < 0) {
+        return res.status(400).json({
+            isError: true,
+            error: 'Invalid document ID',
+            message: 'Document ID must be a positive number'
+        });
     }
-    catch (e) {
-        res.status(500).json({ isError: true, error: e instanceof Error ? e.message : 'unknown error' });
+    const doc = repository.findOneById(id);
+    if (!doc) {
+        return res.status(404).json({
+            isError: true,
+            error: 'Document not found',
+            message: `Document with ID ${id} not found`
+        });
     }
-});
+    res.json({ content: [{ type: 'text', text: doc.content }] });
+}));
+// 404 핸들러
+app.use(notFoundHandler);
+// 글로벌 에러 핸들러
+app.use(errorHandler);
 async function main() {
     // 1) 로컬(MCP 클라이언트)용 stdio 연결
     const stdio = new StdioServerTransport();
