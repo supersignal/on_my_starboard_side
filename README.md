@@ -41,24 +41,71 @@ Cursor, Claude, GitHub Copilot등과 같은 AI 개발 도구와 연동되어 실
 ### 2.1 전체 아키텍처
 
 ```mermaid
-graph LR
-  A[Client] --> B[MCP Server]
-  B --> C[Service Layer]
-  C --> D[Repository Layer]
-  D --> E[Document Processing]
-  E --> F[BM25 Search Engine]
-  E --> G[Markdown Parser]
-  G --> H[Local Files]
-
-  subgraph PIPELINE [Document Processing Pipeline]
-    I[Raw LLM Text] --> J[Parse Documents]
-    J --> K[Fetch Markdown]
-    K --> L[Split into Chunks]
-    L --> M[Extract Metadata]
-    M --> N[Index for Search]
-  end
-
-  E --> PIPELINE
+graph TB
+    %% 클라이언트 영역
+    subgraph CLIENT_ZONE [" 🖥️ Client Zone "]
+        A[👤 Client Application]
+    end
+    
+    %% 서버 영역
+    subgraph SERVER_ZONE [" 🌐 Server Infrastructure "]
+        B[🔗 MCP Server]
+        C[⚙️ Service Layer]
+        D[🗄️ Repository Layer]
+    end
+    
+    %% 문서 처리 영역
+    subgraph DOC_ZONE [" 📝 Document Processing Zone "]
+        E[📋 Document Processing Engine]
+        F[🔍 BM25 Search Engine]
+        G[📄 Markdown Parser]
+    end
+    
+    %% 저장소 영역
+    subgraph STORAGE_ZONE [" 💾 Storage Layer "]
+        H[📁 Local Files]
+    end
+    
+    %% 파이프라인 영역
+    subgraph PIPELINE [" 🔄 Document Processing Pipeline "]
+        direction TB
+        I[📝 Raw LLM Text] 
+        J[🔍 Parse Documents]
+        K[📥 Fetch Markdown]
+        L[✂️ Split into Chunks]
+        M[🏷️ Extract Metadata]
+        N[📊 Index for Search]
+        
+        I --> J
+        J --> K
+        K --> L
+        L --> M
+        M --> N
+    end
+    
+    %% 연결 관계
+    A -->|API Request| B
+    B -->|Process| C
+    C -->|Data Access| D
+    D -->|Document Request| E
+    E -->|Search Query| F
+    E -->|Parse Request| G
+    G -->|File Access| H
+    E -.->|Triggers| PIPELINE
+    N -.->|Indexed Data| F
+    
+    %% 스타일링
+    classDef clientStyle fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#01579b
+    classDef serverStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#4a148c
+    classDef docStyle fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
+    classDef storageStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#e65100
+    classDef pipelineStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#c2185b
+    
+    class A clientStyle
+    class B,C,D serverStyle
+    class E,F,G docStyle
+    class H storageStyle
+    class I,J,K,L,M,N pipelineStyle
 ```
 
 ### 2.2 레이어별 구조
@@ -98,6 +145,10 @@ src/
 |   ├── 00.xxxxx.markdown               # 주요 markdown 00
 |   ├── .....                           .....
 |   └── 14.xxxxx.markdown               # 주요 markdown 14
+├── middleware/                        # 외부접근을 위한 도구
+|   ├── auth.ts                         # 인증 처리
+|   ├── error-handler.ts                # 에러 처리
+|   └── rate-limits.ts                  # API별 등급 
 ├── repository/                        # 저장소
 │   └── nicepayments-docs.repository.ts # 저장소 문서 처리
 ├── schemas/                           # 서비스 계층
