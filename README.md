@@ -1,32 +1,127 @@
-# 나이스페이먼츠 developers MCP 서버 프로젝트 분석 문서
+# 나이스페이먼츠 Developers MCP 서버
+
+나이스페이먼츠 개발자 문서(마크다운)를 수집·청킹하고 BM25로 검색해 MCP(Model Context Protocol) 및 HTTP API로 제공하는 TypeScript 서버입니다.
 
 ## 📋 목차
-1. [프로젝트 개요](#1-프로젝트-개요)
-2. [시스템 아키텍처](#2-시스템-아키텍처)
-3. [프로젝트 구조](#3-프로젝트-구조)
-4. [핵심 컴포넌트 분석](#4-핵심-컴포넌트-분석)
-5. [데이터 플로우](#5-데이터-플로우)
-6. [핵심 알고리즘](#6-핵심-알고리즘)
-7. [API 명세](#7-api-명세)
-8. [코드 품질 및 패턴](#8-코드-품질-및-패턴)
-9. [확장 가능성](#9-확장-가능성)
-10. [개선 제안사항](#10-개선-제안사항)
-11. [사용방법](#11-사용방법)
----
+- [프로젝트 개요](#프로젝트-개요)
+- [데이터 소스](#데이터-소스)
+- [로컬 개발 가이드](#로컬-개발-가이드)
+- [시스템 아키텍처](#시스템-아키텍처)
+- [프로젝트 구조](#프로젝트-구조)
+- [핵심 컴포넌트 분석](#핵심-컴포넌트-분석)
+- [데이터 플로우](#데이터-플로우)
+- [핵심 알고리즘](#핵심-알고리즘)
+- [API 명세](#api-명세)
+- [코드 품질 및 패턴](#코드-품질-및-패턴)
+- [확장 가능성](#확장-가능성)
+- [개선 제안사항](#개선-제안사항)
+- [사용방법](#사용방법)
 
-## 1. 프로젝트 개요
+## 프로젝트 개요
 
 나이스페이먼츠 개발자 문서를 수집·청킹하고 BM25로 검색해 MCP(Model Context Protocol) 및 HTTP API로 제공하는 서비스입니다.
-- 본 MCP 서버의 목표는 고객사가 MCP 서버를 통해 관련 내용(결제승인, 결제취소, 결제창 연결)을 손쉽게 수집, 참조하고 생성형 도구(claude, cursor, chatgpt, github copilot 등)를 이용한 소스 코드 작성을 지원함으로써 결제 기능을 보다 편리하고 신뢰성 있게 구현하도록 돕는 것이다.
 
-- 패키지명: `@nicepayments/developers-guide-mcp`
-- 런타임/언어: Node.js 22.x, TypeScript
-- 제공 모드: MCP(stdio), HTTP, Hybrid(MCP+HTTP)
-- 주요 기능: 나이스페이먼츠 developers 페이지 정보 제공, 문서 청킹/검색(BM25), MCP 툴 제공, API 키 인증, Rate Limiting, 에러 핸들링
+**본 MCP 서버의 목표**: 고객사가 MCP 서버를 통해 관련 내용(결제승인, 결제취소, 결제창 연결)을 손쉽게 수집, 참조하고 생성형 도구(Claude, Cursor, ChatGPT, GitHub Copilot 등)를 이용한 소스 코드 작성을 지원함으로써 결제 기능을 보다 편리하고 신뢰성 있게 구현하도록 돕는 것입니다.
+
+### 기본 정보
+- **패키지명**: `@nicepayments/developers-guide-mcp`
+- **런타임/언어**: Node.js 22.x, TypeScript
+- **제공 모드**: MCP(stdio), HTTP, Hybrid(MCP+HTTP)
+- **주요 기능**: 문서 청킹/검색(BM25), MCP 툴 제공, API 키 인증, Rate Limiting, 에러 핸들링
 
 ---
 
-## 2. 시스템 아키텍처
+## 데이터 소스
+
+### 문서 소스 구조
+- **llms.txt**: 문서 링크 목록 파일 (GitHub 원격 참조)
+  - 위치: `https://github.com/supersignal/going_on_hypersonic/blob/main/src/llm/llms.txt`
+  - 형식: `[제목](링크): 설명`
+  - 예시: `[인증 결제 API](https://github.com/supersignal/going_on_hypersonic/blob/main/markdown/01.manual-auth.markdown): PC/MOBILE 결제창 호출하고 인증 결제를 구현할 수 있는 서비스와 주요 파라미터 설명 그리고 샘플코드`
+
+- **마크다운 파일들**: 나이스페이먼츠 개발자 문서들
+  - 위치: GitHub `markdown/` 디렉토리
+  - 지원 문서 유형: 
+    - **API**: 인증결제, 카드키인, 카드빌링, 가상계좌, 취소, 결제조회, 결제통보, 영수증
+    - **APP**: iOS/Android 연동
+    - **가이드**: G2 인증서 변경, FAQ, Quickstart
+
+### 문서 메타데이터 구조
+```markdown
+***
+title: 문서 제목
+description: 문서 설명
+keyword: 키워드1, 키워드2, 키워드3
+-----
+[마크다운 본문]
+```
+
+### 데이터 처리 파이프라인
+1. **llms.txt 로드** → 링크 추출 → 마크다운 fetch
+2. **메타데이터 파싱** → 논리 섹션 청킹 → 키워드 세트 생성
+3. **BM25 인덱싱** → 검색 최적화
+
+---
+
+## 로컬 개발 가이드
+
+### 개발 환경 설정
+1. **저장소 클론 및 의존성 설치**
+```bash
+git clone <repository-url>
+cd on_my_starboard_side
+npm install
+```
+
+2. **환경변수 설정**
+```bash
+# .env 파일 생성 (env.example 참고)
+cp env.example .env
+
+# 개발용 설정 예시
+NICEPAY_DATA_PATH=https://github.com/supersignal/going_on_hypersonic/blob/main/src/llm/llms.txt
+NICEPAY_BASE_URL=https://github.com/supersignal/going_on_hypersonic/blob/main
+NICEPAY_MARKDOWN_PATH=/markdown
+NICEPAY_LLM_PATH=/src/llm
+API_KEYS=dev-key-123,test-key-456
+LOG_LEVEL=debug
+```
+
+3. **빌드 및 실행**
+```bash
+# 빌드
+npm run build
+
+# 개발 모드 (MCP stdio)
+npm start
+
+# HTTP 서버 모드
+npm run start-http
+
+# 하이브리드 모드 (MCP + HTTP)
+npm run start-hybrid
+```
+
+### 개발 도구
+```bash
+# 타입 체크
+npm run typecheck
+
+# 린트
+npm run lint
+
+# 테스트
+npm run test:ci
+```
+
+### 문제 해결
+- **llms.txt 로드 실패**: 환경변수 `NICEPAY_DATA_PATH` 확인
+- **마크다운 fetch 실패**: 네트워크 연결 및 GitHub 접근 권한 확인
+- **빌드 오류**: Node.js 22.x 버전 및 TypeScript 설정 확인
+
+---
+
+## 시스템 아키텍처
 
 ```mermaid
 graph TB
@@ -108,35 +203,67 @@ src/
 
 ---
 
-## 7. API 명세
+## API 명세
 
 ### MCP 도구
-- get_documents
+- **get_documents**
   - 요청: `{ keywords: string[] }`
   - 응답: `{ content: [{ type: "text", text: string }], isError?: boolean }`
-- document-details
+  - 예시: `{ "keywords": ["인증", "결제", "API"] }`
+
+- **document-details**
   - 요청: `{ id: string }`
   - 응답: `{ content: [{ type: "text", text: string }], isError?: boolean }`
+  - 예시: `{ "id": "5" }`
 
 ### HTTP 엔드포인트 (하이브리드/HTTP 모드)
-- 인증: 헤더 `X-API-Key: <your-api-key>` (필수, `/health`는 선택)
-- Rate Limit: 검색(50/15m), 상세(200/15m), 헬스(10/1m)
+- **인증**: 헤더 `X-API-Key: <your-api-key>` (필수, `/health`는 선택)
+- **Rate Limit**: 검색(50/15m), 상세(200/15m), 헬스(10/1m)
 
-- 헬스체크
+#### 헬스체크
 ```bash
 curl -s http://localhost:3000/health | cat
 ```
-- 문서 검색
+**응답 예시**:
+```json
+{
+  "ok": true,
+  "version": "1.0.0",
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "uptime": 123.456
+}
+```
+
+#### 문서 검색
 ```bash
 curl -s -X POST http://localhost:3000/mcp/get_documents \
   -H 'Content-Type: application/json' \
   -H 'X-API-Key: YOUR_KEY' \
   -d '{"keywords":["인증","결제","API"]}' | cat
 ```
-- 문서 상세
+**응답 예시**:
+```json
+{
+  "content": [{
+    "type": "text",
+    "text": "## 원본문서 제목 : 인증 결제 API\n* 원본문서 ID : 1\n\n### 결제 요청\n결제 승인을 위한 API 호출 방법..."
+  }]
+}
+```
+
+#### 문서 상세 조회
 ```bash
 curl -s http://localhost:3000/mcp/document-details/5 \
   -H 'X-API-Key: YOUR_KEY' | cat
+```
+**응답 예시**:
+```json
+{
+  "content": [{
+    "type": "text",
+    "text": "***\ntitle: 취소 API\ndescription: 승인 취소 서비스와 주요 파라미터 설명 그리고 샘플코드\nkeyword: 취소, cancel, refund\n-----\n\n# 취소 API\n\n## 개요\n..."
+  }]
+}
 ```
 
 ---
@@ -165,7 +292,7 @@ curl -s http://localhost:3000/mcp/document-details/5 \
 
 ---
 
-## 11. 사용방법
+## 사용방법
 
 ### 설치/빌드
 ```bash
@@ -185,20 +312,42 @@ npm run start-http
 npm run start-hybrid
 ```
 
-### 환경변수 (.env 예시: `env.example` 참고)
+### 환경변수 설정
+`.env` 파일을 프로젝트 루트에 생성하세요. 예시는 `env.example` 참고.
+
+**필수 환경변수**:
+```bash
+# API 보안 설정 (필수)
+API_KEYS=test-key-123,prod-key-456,customer-key-789
+
+# 문서 데이터 설정
+NICEPAY_DATA_PATH=https://github.com/supersignal/going_on_hypersonic/blob/main/src/llm/llms.txt
+NICEPAY_BASE_URL=https://github.com/supersignal/going_on_hypersonic/blob/main
+NICEPAY_MARKDOWN_PATH=/markdown
+NICEPAY_LLM_PATH=/src/llm
 ```
+
+**선택 환경변수**:
+```bash
+# 서버 설정
 PORT=3000
 NODE_ENV=development
 LOG_LEVEL=info
-API_KEYS=test-key-123,prod-key-456
-NICEPAY_DATA_PATH=./src/llm/llms.txt
-NICEPAY_BASE_URL=https://github.com/supersignal/going_on_hypersonic/blob/main
-NICEPAY_MARKDOWN_PATH=/src/markdown
-NICEPAY_LLM_PATH=/src/llm
+
+# 검색 설정
 BM25_K1=1.2
 BM25_B=0.75
 MAX_SEARCH_RESULTS=10
+
+# Rate Limiting 설정 (선택사항)
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
 ```
+
+### MCP 클라이언트 연동
+- **Cursor**: MCP 설정에서 stdio 연결
+- **Claude**: MCP 서버 등록 후 사용
+- **GitHub Copilot**: MCP 프로토콜 지원 클라이언트에서 사용
 
 
 ---
