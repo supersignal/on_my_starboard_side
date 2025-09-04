@@ -1,6 +1,8 @@
 import { parseLLMText } from "../document/parseLLMText.js";
 //import { categories, Category } from "../constants/category.js";
 import { calculateBM25ScoresByKeywords, } from "../utils/calculateBM25.js";
+import { HybridSearchEngine } from "../utils/hybridSearch.js";
+import { EnhancedBM25Calculator } from "../utils/enhancedBM25.js";
 import { NicePaymentsDocumentLoader } from "../document/nicepayments-document.loader.js";
 import { MarkdownDocumentFetcher } from "../document/markdown-document.fetcher.js";
 import path from "node:path";
@@ -9,6 +11,9 @@ import { Logger } from '../utils/logger.js';
 //import { CONFIG } from '../config/index.js';
 export class NicePaymentDocsRepository {
     documents;
+    hybridSearchEngine;
+    enhancedBM25Calculator;
+    isInitialized = false;
     //  static async load(link = "https://github.com/supersignal/going_on_hypersonic/blob/main/llm/llms.txt") {
     static async load(link = process.env.NICEPAY_DATA_PATH ||
         GITHUB_CONFIG.baseUrl + GITHUB_CONFIG.llmPath + "/llms.txt") {
@@ -45,24 +50,103 @@ export class NicePaymentDocsRepository {
     }
     constructor(documents) {
         this.documents = documents;
+        this.hybridSearchEngine = new HybridSearchEngine({
+            bm25Weight: 0.6,
+            embeddingWeight: 0.4,
+            useQueryExpansion: true
+        });
+        this.enhancedBM25Calculator = new EnhancedBM25Calculator();
     }
-    async findDocumentsByKeyword(keywords, topN = 10) {
+    /**
+     * 검색 엔진 초기화 (임베딩 사전 계산)
+     */
+    async initialize() {
+        if (this.isInitialized)
+            return;
+        this.log('info', '검색 엔진 초기화 시작...');
+        try {
+            // 하이브리드 검색 엔진 초기화
+            await this.hybridSearchEngine.precomputeEmbeddings(this.documents);
+            // 향상된 BM25 계산기 초기화
+            this.enhancedBM25Calculator.precomputeDocumentStats(this.documents);
+            this.isInitialized = true;
+            this.log('info', '검색 엔진 초기화 완료');
+        }
+        catch (error) {
+            this.log('error', '검색 엔진 초기화 실패:', error);
+            throw error;
+        }
+    }
+    async findDocumentsByKeyword(keywords, topN = 10, useHybridSearch = true) {
         // [디버그] 검색 키워드 입력값 출력
         this.log('debug', 'findDocumentsByKeyword - 입력 키워드:', keywords);
-        const result = await this.getDocumentsByKeywordForLLM(this.documents, keywords, topN);
-        // [디버그] getDocumentsByKeywordForLLM 반환값 출력
-        this.log('debug', 'findDocumentsByKeyword - getDocumentsByKeywordForLLM 반환값:', result);
+        // 검색 엔진 초기화 확인
+        if (!this.isInitialized) {
+            await this.initialize();
+        }
+        const result = useHybridSearch
+            ? await this.getDocumentsByHybridSearch(keywords, topN)
+            : await this.getDocumentsByEnhancedBM25(keywords, topN);
+        // [디버그] 검색 결과 출력
+        this.log('debug', 'findDocumentsByKeyword - 검색 결과:', result);
         if (!result || result.trim() === "") {
-            console.log("[DEBUG] BM25 검색 결과 없음");
+            console.log("[DEBUG] 검색 결과 없음");
         }
         else {
-            console.log("[DEBUG] BM25 검색 결과 있음");
+            console.log("[DEBUG] 검색 결과 있음");
         }
         return result;
     }
     findOneById(id) {
         return this.documents[id];
     }
+    /**
+     * 하이브리드 검색을 사용한 문서 검색
+     */
+    async getDocumentsByHybridSearch(keywords, topN = 10) {
+        this.log('debug', 'getDocumentsByHybridSearch - 입력 keywords:', keywords);
+        const query = keywords.join(' ');
+        const results = await this.hybridSearchEngine.search(query, this.documents, topN);
+        this.log('debug', 'getDocumentsByHybridSearch - 하이브리드 검색 결과:', {
+            length: results.length,
+            top3: results.slice(0, 3).map(r => ({
+                chunkId: r.chunkId,
+                combinedScore: r.combinedScore,
+                matchedTerms: r.matchedTerms
+            }))
+        });
+        const docs = results
+            .map((item) => this.findChunkByHybridResult(item))
+            .filter((item) => item !== undefined)
+            .map((items) => this.normalizeChunks(items));
+        this.log('debug', 'getDocumentsByHybridSearch - 정제된 청크:', docs);
+        return docs.join("\n\n");
+    }
+    /**
+     * 향상된 BM25를 사용한 문서 검색
+     */
+    async getDocumentsByEnhancedBM25(keywords, topN = 10) {
+        this.log('debug', 'getDocumentsByEnhancedBM25 - 입력 keywords:', keywords);
+        const query = keywords.join(' ');
+        const results = this.enhancedBM25Calculator.calculateScores(query, this.documents, topN);
+        this.log('debug', 'getDocumentsByEnhancedBM25 - 향상된 BM25 결과:', {
+            length: results.length,
+            top3: results.slice(0, 3).map(r => ({
+                chunkId: r.chunkId,
+                score: r.score,
+                matchedTerms: r.matchedTerms
+            }))
+        });
+        const docs = results
+            .map((item) => this.findChunkByEnhancedBM25Result(item))
+            .filter((item) => item !== undefined)
+            .map((items) => this.normalizeChunks(items));
+        this.log('debug', 'getDocumentsByEnhancedBM25 - 정제된 청크:', docs);
+        return docs.join("\n\n");
+    }
+    /**
+     * 기존 BM25 검색 (하위 호환성)
+     */
     async getDocumentsByKeywordForLLM(documents, keywords, topN = 10) {
         // [디버그] BM25 점수 계산 전 입력값 출력
         this.log('debug', 'getDocumentsByKeywordForLLM - 입력 keywords:', keywords);
@@ -79,6 +163,14 @@ export class NicePaymentDocsRepository {
         return docs.join("\n\n");
     }
     findChunkByBM25Result(item) {
+        const document = this.findOneById(item.id);
+        return document.getChunkWithWindow(item.chunkId, 1);
+    }
+    findChunkByHybridResult(item) {
+        const document = this.findOneById(item.id);
+        return document.getChunkWithWindow(item.chunkId, 1);
+    }
+    findChunkByEnhancedBM25Result(item) {
         const document = this.findOneById(item.id);
         return document.getChunkWithWindow(item.chunkId, 1);
     }

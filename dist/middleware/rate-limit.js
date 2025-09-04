@@ -36,7 +36,7 @@ export const createApiKeyRateLimit = (windowMs = 15 * 60 * 1000, max = 100) => {
     });
 };
 /**
- * 검색 API 전용 Rate Limiting (더 엄격)
+ * 검색 API 전용 Rate Limiting
  */
 export const searchRateLimit = createApiKeyRateLimit(15 * 60 * 1000, // 15분
 50 // 최대 50회 검색
@@ -48,7 +48,7 @@ export const generalRateLimit = createApiKeyRateLimit(15 * 60 * 1000, // 15분
 200 // 최대 200회 요청
 );
 /**
- * 헬스체크용 Rate Limiting (관대함)
+ * 헬스체크용 Rate Limiting
  */
 export const healthRateLimit = createApiKeyRateLimit(1 * 60 * 1000, // 1분
 10 // 최대 10회
