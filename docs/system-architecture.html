@@ -48,11 +48,11 @@
       </div>
       <div id="diagram" class="mermaid">
 flowchart TD
-    A[Client Layer<br/>(Cursor / Claude / Copilot)]
-    A --> B[MCP Server (stdio) +<br/>HTTP API (Express)]
-    B --> C[Service Layer<br/>(검색, 인증, Rate Limiting)]
-    C --> D[Repository Layer<br/>(문서 저장소, BM25 검색)]
-    D --> E[Data Source<br/>(GitHub Markdown, llms.txt)]
+    A[Client Layer\n(Cursor / Claude / Copilot)]
+    A --> B[MCP Server (stdio) +\nHTTP API (Express)]
+    B --> C[Service Layer\n(검색, 인증, Rate Limiting)]
+    C --> D[Repository Layer\n(문서 저장소, BM25 검색)]
+    D --> E[Data Source\n(GitHub Markdown, llms.txt)]
       </div>
     </div>
 
@@ -85,7 +85,7 @@ flowchart TD
           nodeSpacing: 40,
           rankSpacing: 50
         },
-        securityLevel: 'antiscript'
+        securityLevel: 'loose'
       });
       mermaid.run({ querySelector: '.mermaid' });
     }
