@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>시스템 구성 - 아키텍처 다이어그램</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #f7f7fb; --text: #111827; --muted: #6b7280; --card: #ffffff; --border: #e5e7eb; --accent: #2563eb; }
+    :root.dark { --bg: #0b0f19; --text: #e5e7eb; --muted: #9ca3af; --card: #0f172a; --border: #1f2937; --accent: #60a5fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Apple Color Emoji, Segoe UI Emoji; background: var(--bg); color: var(--text); line-height: 1.5; }
+    .container { max-width: 1080px; margin: 48px auto; padding: 0 20px; }
+    .header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+    .title { font-size: clamp(20px, 3vw, 28px); font-weight: 700; letter-spacing: -0.01em; }
+    .subtitle { color: var(--muted); font-size: 14px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; }
+    .btn { appearance: none; border: 1px solid var(--border); background: transparent; color: var(--text); padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; }
+    .btn:hover { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 12%, transparent); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #ffffff; }
+    #diagram { overflow: auto; }
+    footer { margin-top: 14px; color: var(--muted); font-size: 12px; }
+  </style>
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b0f19" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f7f7fb" media="(prefers-color-scheme: light)">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Ctext y='50' font-size='52'%3E%F0%9F%93%8B%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <div class="title">시스템 구성</div>
+        <div class="subtitle">Client → MCP/HTTP → Service → Repository → Data Source</div>
+      </div>
+      <div>
+        <button id="theme-toggle" class="btn" aria-label="테마 전환">라이트/다크</button>
+        <button id="download-svg" class="btn primary" aria-label="SVG 다운로드">SVG 저장</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <div class="subtitle">Mermaid Flowchart</div>
+      </div>
+      <div id="diagram" class="mermaid">
+flowchart TD
+    A[Client Layer<br/>(Cursor / Claude / Copilot)]
+    A --> B[MCP Server (stdio) +<br/>HTTP API (Express)]
+    B --> C[Service Layer<br/>(검색, 인증, Rate Limiting)]
+    C --> D[Repository Layer<br/>(문서 저장소, BM25 검색)]
+    D --> E[Data Source<br/>(GitHub Markdown, llms.txt)]
+      </div>
+    </div>
+
+    <footer>Mermaid로 렌더링된 아키텍처 다이어그램</footer>
+  </div>
+
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const root = document.documentElement;
+
+    function getInitialTheme() {
+      const saved = localStorage.getItem('theme-override');
+      if (saved === 'light' || saved === 'dark') return saved;
+      return prefersDark.matches ? 'dark' : 'light';
+    }
+
+    function applyTheme(theme) {
+      root.classList.toggle('dark', theme === 'dark');
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: theme === 'dark' ? 'dark' : 'default',
+        themeVariables: {
+          fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto',
+        },
+        flowchart: {
+          curve: 'basis',
+          padding: 8,
+          nodeSpacing: 40,
+          rankSpacing: 50
+        },
+        securityLevel: 'antiscript'
+      });
+      mermaid.run({ querySelector: '.mermaid' });
+    }
+
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    themeToggleBtn.addEventListener('click', () => {
+      const current = root.classList.contains('dark') ? 'dark' : 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme-override', next);
+      applyTheme(next);
+    });
+
+    prefersDark.addEventListener?.('change', (e) => {
+      const saved = localStorage.getItem('theme-override');
+      if (!saved) applyTheme(e.matches ? 'dark' : 'light');
+    });
+
+    applyTheme(getInitialTheme());
+
+    // Download SVG helper
+    document.getElementById('download-svg').addEventListener('click', () => {
+      const svg = document.querySelector('#diagram svg');
+      if (!svg) return;
+      const serializer = new XMLSerializer();
+      const source = serializer.serializeToString(svg);
+      const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'system-architecture.svg';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
+
