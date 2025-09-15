@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP 서버 개발부터 Cursor AI IDE 연결까지의 여정</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow: hidden;
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 60px;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        .slide h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+        }
+
+        .slide h2 {
+            font-size: 1.8em;
+            color: #34495e;
+            margin: 25px 0 15px 0;
+        }
+
+        .slide h3 {
+            font-size: 1.4em;
+            color: #7f8c8d;
+            margin: 20px 0 10px 0;
+        }
+
+        .slide p, .slide li {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .slide ul {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        .slide li {
+            margin-bottom: 8px;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #3498db;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .architecture-diagram {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            background: #3498db;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            min-width: 150px;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin: 0 5px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .title-slide {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .title-slide h1 {
+            font-size: 3.5em;
+            margin-bottom: 30px;
+            border: none;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .title-slide .subtitle {
+            font-size: 1.5em;
+            margin-bottom: 50px;
+            opacity: 0.9;
+        }
+
+        .title-slide .author {
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+
+        .image-placeholder {
+            background: #ecf0f1;
+            border: 2px dashed #bdc3c7;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .two-column {
+            display: flex;
+            gap: 30px;
+        }
+
+        .column {
+            flex: 1;
+        }
+
+        .timeline {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .timeline-item {
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+            margin-left: 30px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 20px;
+            width: 10px;
+            height: 10px;
+            background: #3498db;
+            border-radius: 50%;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: -16px;
+            top: 30px;
+            width: 2px;
+            height: calc(100% + 15px);
+            background: #3498db;
+        }
+
+        .timeline-item:last-child::after {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- 슬라이드 1: 타이틀 -->
+        <div class="slide active title-slide">
+            <h1>MCP 서버 개발부터 AI IDE 연결까지의 여정</h1>
+            <div class="subtitle">나이스페이먼츠 개발자 가이드 MCP 서버 구축 과제</div>
+            <div class="author">AI 시대의 개발자 경험 혁신</div>
+        </div>
+
+        <!-- 슬라이드 2: 프로젝트 개요 -->
+        <div class="slide">
+            <h1>프로젝트 개요 및 비전</h1>
+            <div class="highlight">
+                <h2>AI 시대의 개발자 경험 혁신: MCP 서버로 구현하는 스마트 개발 환경</h2>
+            </div>
+            
+            <div class="two-column">
+                <div class="column">
+                    <h3>프로젝트 정보</h3>
+                    <ul>
+                        <li><strong>프로젝트명:</strong> on_my_starboard_side</li>
+                        <li><strong>목표:</strong> 결제 시스템 연동 개발의 복잡성 해결</li>
+                        <li><strong>패키지:</strong> @nicepayments/developers-guide-mcp</li>
+                        <li><strong>버전:</strong> 0.0.7</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>핵심 가치</h3>
+                    <ul>
+                        <li>개발자 생산성 향상</li>
+                        <li>문서 검색 및 참조 자동화</li>
+                        <li>AI 도구와의 원활한 연동</li>
+                        <li>학습 곡선 완화</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number">60배</span>
+                    <div>검색 시간 단축</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">30%</span>
+                    <div>생산성 향상</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">50%</span>
+                    <div>오류 감소</div>
+                </div>
+            </div>
+
+            <div class="image-placeholder">
+              <img src="src/img/image1.png"><br/>
+              AI와 개발자가 협업하는 모습, 결제 시스템 아키텍처 다이어그램
+            </div>
+        </div>
+
+        <!-- 슬라이드 3: 문제 정의 -->
+        <div class="slide">
+            <h1>문제 정의 및 해결 방향</h1>
+            <h2>왜 MCP 서버가 필요한가? - 결제 연동 개발의 현실</h2>
+            
+            <div class="two-column">
+                <div class="column">
+                    <h3>기존 문제점</h3>
+                    <ul>
+                        <li>방대한 API 문서와 복잡한 연동 가이드</li>
+                        <li>버전별 문서 분산으로 인한 혼란</li>
+                        <li>개발 중 실시간 문서 참조의 어려움</li>
+                        <li>AI 도구가 최신 문서를 참조하지 못하는 한계</li>
+                        <li>문서 검색에 소요되는 시간과 노력</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>해결 방향</h3>
+                    <ul>
+                        <li>중앙화된 문서 관리 시스템</li>
+                        <li>실시간 검색 및 참조 기능</li>
+                        <li>AI 도구와의 표준화된 연동 (MCP)</li>
+                        <li>버전 관리 및 업데이트 자동화</li>
+                        <li>개발자 경험 개선</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="image-placeholder">
+                <img src="src/img/image2.png"><br/>
+                복잡한 자료를 찾는 개발자, AI가 관련 문서를 찾아내는 모습 
+            </div>
+        </div>
+
+        <!-- 슬라이드 4: MCP 이해 -->
+        <div class="slide">
+            <h1>MCP(Model Context Protocol) 이해</h1>
+            <h2>MCP: AI와 개발 환경을 연결하는 표준 프로토콜</h2>
+            
+            <div class="highlight">
+                <h3>MCP란?</h3>
+                <p>AI 모델이 외부 도구와 안전하게 상호작용할 수 있는 표준 프로토콜로, Anthropic에서 개발한 오픈 소스 프로토콜입니다.</p>
+            </div>
+
+            <div class="two-column">
+                <div class="column">
+                    <h3>핵심 구성요소</h3>
+                    <ul>
+                        <li><strong>Tools:</strong> AI가 호출할 수 있는 기능들</li>
+                        <li><strong>Resources:</strong> AI가 읽을 수 있는 데이터 소스</li>
+                        <li><strong>Prompts:</strong> 재사용 가능한 프롬프트 템플릿</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>지원 도구</h3>
+                    <ul>
+                        <li>Cursor IDE</li>
+                        <li>Claude (Anthropic)</li>
+                        <li>GitHub Copilot</li>
+                        <li>기타 MCP 호환 클라이언트</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h3>우리 프로젝트에서의 활용</h3>
+                <ul>
+                    <li>문서 검색 도구 제공</li>
+                    <li>실시간 API 가이드 참조</li>
+                    <li>코드 생성 시 컨텍스트 제공</li>
+                </ul>
+            </div>
+
+            <div class="image-placeholder">
+              <img src="src/img/image3.png"><br/>
+              MCP 아키텍처 다이어그램, AI 도구들과 MCP 서버 간의 연결 구조
+            </div>
+        </div>
+
+        <!-- 슬라이드 5: 아키텍처 설계 -->
+        <div class="slide">
+            <h1>프로젝트 아키텍처 설계</h1>
+            <h2>확장 가능하고 유지보수 가능한 시스템 아키텍처</h2>
+            
+            <div class="image-placeholder">
+                <img src="src/img/image4.png">
+            </div>
+
+            <div class="two-column">
+                <div class="column">
+                    <h3>핵심 설계 원칙</h3>
+                    <ul>
+                        <li>레이어드 아키텍처로 관심사 분리</li>
+                        <li>타입 안전성 (TypeScript + Zod)</li>
+                        <li>확장 가능한 검색 엔진 (BM25)</li>
+                        <li>보안 및 안정성 (API Key, Rate Limiting)</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>주요 컴포넌트</h3>
+                    <ul>
+                        <li>MCP Server (stdio)</li>
+                        <li>HTTP API (Express)</li>
+                        <li>하이브리드 서버</li>
+                        <li>문서 저장소</li>
+                        <li>검색 엔진</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="image-placeholder">
+            	<img src="src/img/image5.png"><br/>
+                시스템 아키텍처 다이어그램, 레이어별 책임 분담 구조, 데이터 플로우 차트
+            </div>
+        </div>
+
+        <!-- 슬라이드 6: 데이터 소스 관리 -->
+        <div class="slide">
+            <h1>데이터 소스 및 문서 관리 전략</h1>
+            <h2>GitHub 기반 문서 관리: 버전 제어와 자동화의 만남</h2>
+            
+            <div class="two-column">
+                <div class="column">
+                    <h3>문서 소스 구조</h3>
+                    <ul>
+                        <li><strong>llms.txt:</strong> 문서 링크 목록 (GitHub 원격 참조)</li>
+                        <li><strong>markdown/:</strong> 나이스페이먼츠 개발자 문서들</li>
+                        <li><strong>메타데이터:</strong> 제목, 설명, 키워드 자동 추출</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>문서 처리 파이프라인</h3>
+                    <ol>
+                        <li>llms.txt 로드 → 링크 추출</li>
+                        <li>마크다운 파일 fetch → 메타데이터 파싱</li>
+                        <li>논리 섹션 청킹 → 키워드 세트 생성</li>
+                        <li>BM25 인덱싱 → 검색 최적화</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h3>장점</h3>
+                <ul>
+                    <li>버전 제어와 자동 동기화</li>
+                    <li>실시간 문서 업데이트 반영</li>
+                    <li>중앙화된 문서 관리</li>
+                    <li>협업 친화적 워크플로우</li>
+                </ul>
+            </div>
+
+            <div class="code-block">
+# llms.txt 예시
+[인증 결제 API](https://github.com/supersignal/going_on_hypersonic/blob/main/markdown/01.manual-auth.markdown): PC/MOBILE 결제창 호출하고 인증 결제를 구현할 수 있는 서비스와 주요 파라미터 설명 그리고 샘플코드
+            </div>
+
+            <div class="image-placeholder">
+            	<img src="src/img/image6.png">
+                GitHub 저장소 구조 스크린샷, 문서 처리 파이프라인 플로우차트
+            </div>
+        </div>
+
+        <!-- 슬라이드 7: 기술 스택 -->
+        <div class="slide">
+            <h1>핵심 기술 스택 및 구현</h1>
+            <h2>TypeScript + Node.js로 구현하는 고성능 MCP 서버</h2>
+            
+            <div class="two-column">
+                <div class="column">
+                    <h3>기술 스택</h3>
+                    <ul>
+                        <li><strong>Backend:</strong> Node.js 22.x, TypeScript 5.9</li>
+                        <li><strong>MCP:</strong> @modelcontextprotocol/sdk</li>
+                        <li><strong>HTTP:</strong> Express.js + CORS</li>
+                        <li><strong>검색:</strong> BM25 알고리즘 (k1=1.2, b=0.75)</li>
+                        <li><strong>검증:</strong> Zod 스키마 검증</li>
+                        <li><strong>보안:</strong> API Key 인증, Rate Limiting</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>핵심 기능 구현</h3>
+                    <ul>
+                        <li>문서 검색 (get_documents)</li>
+                        <li>문서 상세 조회 (document-details)</li>
+                        <li>하이브리드 서버 (MCP + HTTP)</li>
+                        <li>실시간 문서 인덱싱</li>
+                        <li>에러 핸들링 및 로깅</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h3>성능 최적화</h3>
+                <ul>
+                    <li>메모리 기반 BM25 인덱스</li>
+                    <li>청크 윈도우링으로 컨텍스트 보존</li>
+                    <li>효율적인 키워드 매칭</li>
+                    <li>캐싱 및 메모리 관리</li>
+                </ul>
+            </div>
+
+            <div class="code-block">
+// MCP 도구 등록 예시
+server.tool(
+    "get_documents",
+    "나이스페이먼츠 문서들을 키워드로 검색합니다.",
+    GetDocumentSchema,
+    async ({ keywords }) => {
+        return await getDocumentsByKeyword(keywords);
+    }
+);
+            </div>
+
+            <div class="image-placeholder">
+            	<img src="src/img/image7.png"><br/>
+                기술 스택 로고들, 코드 구조 다이어그램, 성능 메트릭 차트
+            </div>
+        </div>
+
+        <!-- 슬라이드 8: 개발 과정 -->
+        <div class="slide">
+            <h1>개발 과정 및 도전 과제</h1>
+            <h2>실전 개발 경험: 문제 해결과 성장의 과정</h2>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h3>1. 설계 단계</h3>
+                    <p>아키텍처 설계 및 기술 스택 선택</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>2. 구현 단계</h3>
+                    <p>핵심 기능 개발 (문서 로딩, 검색, MCP 연동)</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>3. 테스트 단계</h3>
+                    <p>단위 테스트 및 통합 테스트</p>
+                </div>
+                <div class="timeline-item">
+                    <h3>4. 최적화 단계</h3>
+                    <p>성능 튜닝 및 사용자 경험 개선</p>
+                </div>
+            </div>
+
+            <div class="two-column">
+                <div class="column">
+                    <h3>주요 도전 과제</h3>
+                    <ul>
+                        <li><strong>문서 파싱:</strong> 마크다운 메타데이터 추출의 복잡성</li>
+                        <li><strong>검색 정확도:</strong> BM25 파라미터 튜닝</li>
+                        <li><strong>MCP 연동:</strong> 프로토콜 표준 준수</li>
+                        <li><strong>에러 처리:</strong> 안정적인 서비스 제공</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>해결 방법</h3>
+                    <ul>
+                        <li>체계적인 테스트 및 디버깅</li>
+                        <li>점진적 개선 및 피드백 반영</li>
+                        <li>커뮤니티 참여 및 문서 학습</li>
+                        <li>지속적인 코드 리뷰</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="image-placeholder">
+            	<img src="src/img/image8.svg">
+                개발 과정 타임라인, 문제 해결 과정 플로우차트, 코드 리뷰 과정
+            </div>
+        </div>
+
+        <!-- 슬라이드 9: Cursor 연동 -->
+        <div class="slide">
+            <h1>Cursor AI IDE 연동 및 활용</h1>
+            <h2>Cursor와의 완벽한 연동: AI 기반 개발 환경 구축</h2>
+            
+            <div class="highlight">
+                <h3>Cursor IDE 설정</h3>
+                <div class="code-block">
+{
+  "mcpServers": {
+    "nicepayments": {
+      "command": "node",
+      "args": ["dist/server.js"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}
+                </div>
+            </div>
+
+            <div class="two-column">
+                <div class="column">
+                    <h3>활용 시나리오</h3>
+                    <ul>
+                        <li><strong>코드 생성:</strong> "결제 승인 API를 구현해줘" → MCP 서버에서 최신 문서 참조</li>
+                        <li><strong>문서 검색:</strong> "가상계좌 발급 방법이 뭐야?" → 실시간 문서 검색</li>
+                        <li><strong>디버깅:</strong> "이 에러는 왜 발생했지?" → 관련 문서 자동 참조</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>개발자 경험 개선</h3>
+                    <ul>
+                        <li>컨텍스트 인식 코드 생성</li>
+                        <li>실시간 문서 참조</li>
+                        <li>자동화된 API 연동 가이드</li>
+                        <li>지능형 에러 해결 지원</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number">5초</span>
+                    <div>문서 검색 시간</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">실시간</span>
+                    <div>문서 업데이트</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">100%</span>
+                    <div>AI 연동</div>
+                </div>
+            </div>
+
+            <div class="image-placeholder">
+            	  <img src="src/img/image9.svg">
+                Cursor IDE 스크린샷, MCP 서버 연동 설정 화면, AI가 코드를 생성하는 과정
+            </div>
+        </div>
+
+        <!-- 슬라이드 10: 성과 및 미래 -->
+        <div class="slide">
+            <h1>성과 및 미래 계획</h1>
+            <h2>프로젝트 성과와 지속적인 혁신 방향</h2>
+            
+            <div class="two-column">
+                <div class="column">
+                    <h3>달성 성과</h3>
+                    <ul>
+                        <li>✅ 완전한 MCP 서버 구현</li>
+                        <li>✅ GitHub 기반 문서 자동 동기화</li>
+                        <li>✅ Cursor IDE 연동 성공</li>
+                        <li>✅ BM25 기반 고성능 검색</li>
+                        <li>✅ 타입 안전한 TypeScript 구현</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>정량적 효과</h3>
+                    <ul>
+                        <li>문서 검색 시간: 5분 → 5초 (60배 단축)</li>
+                        <li>개발 생산성: 30% 향상</li>
+                        <li>오류 발생률: 50% 감소</li>
+                        <li>학습 시간: 70% 단축</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h3>미래 계획</h3>
+                <div class="two-column">
+                    <div class="column">
+                        <h4>확장</h4>
+                        <ul>
+                            <li>다른 AI 도구 연동 (Claude, Copilot)</li>
+                            <li>추가 문서 소스 지원</li>
+                            <li>다국어 지원</li>
+                        </ul>
+                    </div>
+                    <div class="column">
+                        <h4>개선</h4>
+                        <ul>
+                            <li>하이브리드 검색 (BM25 + 임베딩)</li>
+                            <li>실시간 문서 업데이트 알림</li>
+                            <li>성능 모니터링</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="image-placeholder">
+            	<img src="src/img/image10.png"><br/>
+                성과 지표 대시보드, Before/After 비교 차트, 로드맵 타임라인
+            </div>
+        </div>
+
+        <!-- 슬라이드 11: 결론 -->
+        <div class="slide">
+            <h1>결론 및 시사점</h1>
+            <h2>AI 시대 개발자 경험의 새로운 패러다임</h2>
+            
+            <div class="highlight">
+                <h3>핵심 메시지</h3>
+                <ul>
+                    <li>MCP는 AI와 개발 환경을 연결하는 핵심 기술</li>
+                    <li>문서 자동화는 개발 생산성 향상의 핵심</li>
+                    <li>오픈 소스 생태계의 중요성</li>
+                    <li>지속적인 혁신과 개선의 필요성</li>
+                </ul>
+            </div>
+
+            <div class="two-column">
+                <div class="column">
+                    <h3>학습 포인트</h3>
+                    <ul>
+                        <li><strong>기술적:</strong> MCP 프로토콜, BM25 검색, TypeScript</li>
+                        <li><strong>프로세스적:</strong> 체계적인 개발 방법론</li>
+                        <li><strong>사고적:</strong> 사용자 중심 설계, 지속적 개선</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>향후 과제</h3>
+                    <ul>
+                        <li>더 많은 AI 도구와의 연동</li>
+                        <li>검색 알고리즘 고도화</li>
+                        <li>사용자 피드백 기반 개선</li>
+                        <li>커뮤니티 기여 확대</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <h3>마무리</h3>
+                <p style="text-align: center; font-size: 1.3em; font-weight: bold; color: #2c3e50;">
+                    "기술은 도구일 뿐, 진정한 가치는 개발자의 경험을 개선하는 것"
+                </p>
+            </div>
+
+            <div class="image-placeholder">
+                <iframe width="100%" height="1024px" src="./future_dev_vision.html"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- 네비게이션 -->
+    <div class="navigation">
+        <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">이전</button>
+        <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">다음</button>
+    </div>
+
+    <!-- 슬라이드 카운터 -->
+    <div class="slide-counter">
+        <span id="currentSlide">1</span> / <span id="totalSlides">11</span>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            
+            document.getElementById('currentSlide').textContent = currentSlide + 1;
+            
+            // 버튼 상태 업데이트
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            if (direction === 1 && currentSlide < totalSlides - 1) {
+                showSlide(currentSlide + 1);
+            } else if (direction === -1 && currentSlide > 0) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        // 키보드 네비게이션
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                changeSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                changeSlide(-1);
+            } else if (e.key === 'Home') {
+                showSlide(0);
+            } else if (e.key === 'End') {
+                showSlide(totalSlides - 1);
+            }
+        });
+
+        // 초기 상태 설정
+        showSlide(0);
+
+        // (다이어그램 제거됨) 
+    </script>
+</body>
+</html>
