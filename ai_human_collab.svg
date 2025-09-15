@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="bgGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0f2b"/>
+      <stop offset="60%" stop-color="#171c45"/>
+      <stop offset="100%" stop-color="#311a5b"/>
+    </linearGradient>
+    <radialGradient id="pulseGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#4ad1ff" stop-opacity="0.45"/>
+      <stop offset="60%" stop-color="#4ad1ff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#4ad1ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="humanGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5ac8fa"/>
+      <stop offset="100%" stop-color="#007aff"/>
+    </linearGradient>
+    <linearGradient id="aiGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b86bff"/>
+      <stop offset="100%" stop-color="#6a5cff"/>
+    </linearGradient>
+    <linearGradient id="connectorGradient" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#36d1dc"/>
+      <stop offset="100%" stop-color="#5b86e5"/>
+    </linearGradient>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0  0 0 0 0 0.6  0 0 0 0 1  0 0 0 1 0" result="blueish"/>
+      <feMerge>
+        <feMergeNode in="blueish"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="outerGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="windowGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#243057"/>
+      <stop offset="100%" stop-color="#1b2243"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#36d1dc"/>
+      <stop offset="100%" stop-color="#b86bff"/>
+    </linearGradient>
+
+    <!-- Symbols for reusable nodes -->
+    <g id="node">
+      <circle r="6" fill="#7ce3ff"/>
+      <circle r="12" fill="none" stroke="#7ce3ff" stroke-opacity="0.5"/>
+    </g>
+    <g id="aiNode">
+      <circle r="6" fill="#caa7ff"/>
+      <circle r="12" fill="none" stroke="#caa7ff" stroke-opacity="0.5"/>
+    </g>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="1600" height="900" fill="url(#bgGradient)"/>
+  <rect x="0" y="0" width="1600" height="900" fill="url(#grid)" opacity="0.45"/>
+
+  <!-- Ambient pulses -->
+  <circle cx="800" cy="450" r="360" fill="url(#pulseGradient)"/>
+  <circle cx="800" cy="450" r="540" fill="url(#pulseGradient)" opacity="0.5"/>
+
+  <!-- Title -->
+  <g filter="url(#softGlow)">
+    <text x="800" y="90" text-anchor="middle" font-family="'Segoe UI', Roboto, 'Noto Sans KR', Arial, sans-serif" font-size="42" fill="#eaf6ff" letter-spacing="1">
+      미래 개발 환경: AI × 인간 협업
+    </text>
+    <text x="800" y="132" text-anchor="middle" font-family="'Segoe UI', Roboto, 'Noto Sans KR', Arial, sans-serif" font-size="18" fill="#c4d6ff" opacity="0.85">
+      공생하는 파이프라인, 신뢰 가능한 자동화, 투명한 의사결정
+    </text>
+  </g>
+
+  <!-- Left: Human silhouette (abstract) -->
+  <g transform="translate(320, 470)">
+    <!-- Head -->
+    <circle cx="-140" cy="-160" r="58" fill="url(#humanGradient)" filter="url(#outerGlow)"/>
+    <!-- Torso -->
+    <path d="M -220, -90 Q -140, -130 -60, -90 Q -40, -50 -40, 20 Q -140, 60 -240, 20 Q -240, -50 -220, -90 Z" fill="url(#humanGradient)" fill-opacity="0.75" stroke="#7ce3ff" stroke-opacity="0.5"/>
+    <!-- Label -->
+    <text x="-140" y="110" text-anchor="middle" font-family="'Noto Sans KR', 'Segoe UI', Roboto, Arial, sans-serif" font-size="16" fill="#bfe9ff">개발자</text>
+  </g>
+
+  <!-- Right: AI core (abstract hex + circuits) -->
+  <g transform="translate(1280, 470)">
+    <!-- Hexagon core -->
+    <polygon points="0,-90 78,-45 78,45 0,90 -78,45 -78,-45" fill="url(#aiGradient)" stroke="#e5d0ff" stroke-opacity="0.7" filter="url(#outerGlow)"/>
+    <!-- Circuit rays -->
+    <g stroke="#caa7ff" stroke-opacity="0.7">
+      <path d="M 0,-90 L 0,-170"/>
+      <path d="M 78,-45 L 150,-95"/>
+      <path d="M 78,45 L 160,95"/>
+      <path d="M 0,90 L 0,170"/>
+      <path d="M -78,45 L -160,95"/>
+      <path d="M -78,-45 L -150,-95"/>
+    </g>
+    <!-- Node tips -->
+    <use x="0" y="-170" xlink:href="#aiNode"/>
+    <use x="150" y="-95" xlink:href="#aiNode"/>
+    <use x="160" y="95" xlink:href="#aiNode"/>
+    <use x="0" y="170" xlink:href="#aiNode"/>
+    <use x="-160" y="95" xlink:href="#aiNode"/>
+    <use x="-150" y="-95" xlink:href="#aiNode"/>
+    <!-- Label -->
+    <text x="0" y="130" text-anchor="middle" font-family="'Noto Sans KR', 'Segoe UI', Roboto, Arial, sans-serif" font-size="16" fill="#eadbff">AI 도우미</text>
+  </g>
+
+  <!-- Central Collaboration Infinity Symbol -->
+  <g transform="translate(800, 450) scale(1.05)" filter="url(#softGlow)">
+    <path d="M -220,0 C -160,-100 -40,-100 0,0 C 40,100 160,100 220,0 C 160,-100 40,-100 0,0 C -40,100 -160,100 -220,0 Z"
+          fill="none" stroke="url(#connectorGradient)" stroke-width="8" stroke-linecap="round"/>
+    <!-- Nodes on the path -->
+    <use x="-130" y="-35" xlink:href="#node"/>
+    <use x="-60" y="40" xlink:href="#node"/>
+    <use x="60" y="-40" xlink:href="#aiNode"/>
+    <use x="130" y="35" xlink:href="#aiNode"/>
+  </g>
+
+  <!-- Connectors from human to infinity and AI to infinity -->
+  <g stroke="url(#connectorGradient)" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.9">
+    <path d="M 200,380 C 380,380 520,420 640,450" fill="none"/>
+    <path d="M 1400,380 C 1220,380 1080,420 960,450" fill="none"/>
+  </g>
+
+  <!-- Floating windows: Dev panes -->
+  <g>
+    <!-- Left code window -->
+    <g transform="translate(220,170)">
+      <rect x="0" y="0" rx="12" ry="12" width="380" height="220" fill="url(#windowGradient)" stroke="#7ce3ff" stroke-opacity="0.35"/>
+      <g opacity="0.9">
+        <circle cx="22" cy="20" r="5" fill="#ff5f56"/>
+        <circle cx="42" cy="20" r="5" fill="#ffbd2e"/>
+        <circle cx="62" cy="20" r="5" fill="#27c93f"/>
+      </g>
+      <g transform="translate(22,50)" font-family="'JetBrains Mono', 'Fira Code', Consolas, monospace" font-size="14" fill="#cfe9ff" opacity="0.9">
+        <text y="0">// feature: AI-assisted review</text>
+        <text y="24">function checkSecurity(code) {</text>
+        <text y="48" fill="#9fe8ff">  const risks = scan(code)</text>
+        <text y="72">  return rank(risks)</text>
+        <text y="96">}</text>
+      </g>
+    </g>
+
+    <!-- Right insight window -->
+    <g transform="translate(1000,160)">
+      <rect x="0" y="0" rx="12" ry="12" width="380" height="240" fill="url(#windowGradient)" stroke="#caa7ff" stroke-opacity="0.35"/>
+      <g opacity="0.9">
+        <circle cx="22" cy="20" r="5" fill="#ff5f56"/>
+        <circle cx="42" cy="20" r="5" fill="#ffbd2e"/>
+        <circle cx="62" cy="20" r="5" fill="#27c93f"/>
+      </g>
+      <g transform="translate(22,50)" font-family="'Noto Sans KR', 'Segoe UI', Roboto, Arial, sans-serif" font-size="14" fill="#eadbff" opacity="0.95">
+        <text y="0">제안: 테스트 커버리지 92% → 96%</text>
+        <text y="26">- 회귀 위험 높은 모듈 3곳</text>
+        <text y="52">- 성능 병목 2개 지점</text>
+        <text y="78">- 접근성 대비: 대비비율 4.5:1</text>
+        <text y="104">만약에: 코드스플리팅 활성화 시 TTI -24%</text>
+      </g>
+    </g>
+
+    <!-- Bottom center pipeline window -->
+    <g transform="translate(560,640)">
+      <rect x="0" y="0" rx="12" ry="12" width="480" height="170" fill="url(#windowGradient)" stroke="url(#accent)" stroke-opacity="0.5"/>
+      <g transform="translate(22,24)" font-family="'Noto Sans KR', 'Segoe UI', Roboto, Arial, sans-serif" font-size="14" fill="#d7ecff">
+        <text y="0">지속적 협업 파이프라인</text>
+      </g>
+      <g transform="translate(22,56)" stroke="#9fd8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="0" y="-20" width="110" height="40" rx="8" ry="8" fill="none"/>
+        <text x="55" y="6" text-anchor="middle" font-family="'Noto Sans KR', 'Segoe UI', Roboto, Arial, sans-serif" font-size="12" fill="#cfe9ff">요구사항</text>
+
+        <path d="M 110,0 L 140,0"/>
+
+        <rect x="140" y="-20" width="110" height="40" rx="8" ry="8" fill="none"/>
+        <text x="195" y="6" text-anchor="middle" font-family="'Noto Sans KR', 'Segoe UI', Roboto, Arial, sans-serif" font-size="12" fill="#cfe9ff">설계·프롬프트</text>
+
+        <path d="M 250,0 L 280,0"/>
+
+        <rect x="280" y="-20" width="110" height="40" rx="8" ry="8" fill="none"/>
+        <text x="335" y="6" text-anchor="middle" font-family="'Noto Sans KR', 'Segoe UI', Roboto, Arial, sans-serif" font-size="12" fill="#cfe9ff">생성·코딩</text>
+
+        <path d="M 390,0 L 420,0"/>
+
+        <rect x="420" y="-20" width="110" height="40" rx="8" ry="8" fill="none"/>
+        <text x="475" y="6" text-anchor="middle" font-family="'Noto Sans KR', 'Segoe UI', Roboto, Arial, sans-serif" font-size="12" fill="#cfe9ff">검증·배포</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Annotations near infinity symbol -->
+  <g font-family="'Noto Sans KR', 'Segoe UI', Roboto, Arial, sans-serif" font-size="14" fill="#d7ecff" opacity="0.9">
+    <text x="680" y="370">설명가능성</text>
+    <text x="900" y="530">피드백 루프</text>
+  </g>
+
+  <!-- Decorative particles -->
+  <g fill="#bfe9ff" opacity="0.5">
+    <circle cx="150" cy="200" r="2"/>
+    <circle cx="180" cy="260" r="2"/>
+    <circle cx="220" cy="220" r="2"/>
+    <circle cx="1380" cy="240" r="2"/>
+    <circle cx="1420" cy="280" r="2"/>
+    <circle cx="1300" cy="200" r="2"/>
+    <circle cx="800" cy="820" r="2"/>
+    <circle cx="760" cy="780" r="2"/>
+    <circle cx="840" cy="780" r="2"/>
+  </g>
+
+  <!-- Footer note -->
+  <g opacity="0.7">
+    <text x="800" y="880" text-anchor="middle" font-family="'Noto Sans KR', 'Segoe UI', Roboto, Arial, sans-serif" font-size="12" fill="#a7b8ff">
+      인간의 창의성 × AI의 확장성 = 지속 가능한 개발 경험
+    </text>
+  </g>
+</svg>
+
