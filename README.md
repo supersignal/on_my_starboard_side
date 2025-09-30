@@ -344,6 +344,31 @@ RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
 ```
 
+### 📦 NPM 패키지 설치 (권장)
+
+```bash
+npm install -g @nicepayments/developers-guide-mcp
+```
+
+### 🔧 Cursor AI IDE 설정
+
+Cursor의 MCP 설정 파일에 다음을 추가하세요:
+
+**Windows**: `%APPDATA%\Cursor\User\globalStorage\cursor.mcp\mcp.json`  
+**macOS**: `~/Library/Application Support/Cursor/User/globalStorage/cursor.mcp/mcp.json`  
+**Linux**: `~/.config/Cursor/User/globalStorage/cursor.mcp/mcp.json`
+
+```json
+{
+  "mcpServers": {
+    "developers-guide-mcp": {
+      "command": "npx",
+      "args": ["-y", "@nicepayments/developers-guide-mcp@latest"]
+    }
+  }
+}
+```
+
 ### MCP 클라이언트 연동
 - **Cursor**: MCP 설정에서 stdio 연결
 - **Claude**: MCP 서버 등록 후 사용
