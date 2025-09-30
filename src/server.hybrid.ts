@@ -14,6 +14,9 @@ import { searchRateLimit, generalRateLimit, healthRateLimit } from './middleware
 import { errorHandler, notFoundHandler, requestIdMiddleware, asyncHandler } from './middleware/error-handler.js';
 import { Request, Response } from 'express';
 
+// ✅ GitHub Service
+import { GithubService } from "./schemas/githubService.js";
+
 // 환경변수 검증
 const env = validateEnv();
 console.log('환경변수 검증 완료:', env);

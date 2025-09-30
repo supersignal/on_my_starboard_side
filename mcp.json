@@ -1,0 +1,11 @@
+{
+"mcpServers": {
+  "developers-guide-mcp": {
+    "command": "npx",
+    "args": [
+      "-y",
+      "@supersignal/on_my_starboard_side@latest"
+    ]
+  }
+}
+}

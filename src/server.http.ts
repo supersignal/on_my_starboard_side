@@ -4,6 +4,9 @@ import { z } from 'zod';
 import { validateEnv } from './config/validation.js';
 import { getDocumentsByKeyword, repository } from './schemas/service.js';
 
+// ✅ GitHub Service
+import { GithubService } from "./schemas/githubService.js";
+
 const env = validateEnv();
 
 const app = express();

@@ -8,6 +8,9 @@ import {
     repository,
 } from "./schemas/service.js";
 
+// ✅ GitHub Service
+import { GithubService } from "./schemas/githubService.js";
+
 //환경변수 로드 및 검증
 const env = validateEnv();
 console.log('환경변수 검증 완료:', env);
