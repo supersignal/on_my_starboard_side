@@ -7,6 +7,7 @@ import {
     getDocumentsByKeyword,
     repository,
 } from "./schemas/service.js";
+import { SystemPrompt } from "./constants/base-prompt.js";
 
 // ✅ GitHub Service
 import { GithubService } from "./schemas/githubService.js";
@@ -67,6 +68,29 @@ server.tool(
                 isError: true,
             };
         }
+    }
+);
+
+// 프롬프트 등록
+server.prompt(
+    "java-spring-expert",
+    "Java 21과 Spring Boot 전문가 프롬프트",
+    {
+        context: z.string().optional().describe("추가 컨텍스트나 요구사항")
+    },
+    async ({ context }) => {
+        const prompt = `${SystemPrompt}${context ? `\n\n추가 컨텍스트: ${context}` : ''}`;
+        return {
+            messages: [
+                {
+                    role: "user",
+                    content: {
+                        type: "text",
+                        text: prompt
+                    }
+                }
+            ]
+        };
     }
 );
 

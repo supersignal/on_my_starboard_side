@@ -4,6 +4,7 @@ import { isNativeError } from "node:util/types";
 import { z } from "zod";
 import { validateEnv } from './config/validation.js';
 import { getDocumentsByKeyword, repository, } from "./schemas/service.js";
+import { SystemPrompt } from "./constants/base-prompt.js";
 //환경변수 로드 및 검증
 const env = validateEnv();
 console.log('환경변수 검증 완료:', env);
@@ -46,6 +47,23 @@ server.tool("document-details", `문서의 원본 ID 로 해당 문서의 전체
             isError: true,
         };
     }
+});
+// 프롬프트 등록
+server.prompt("java-spring-expert", "Java 21과 Spring Boot 전문가 프롬프트", {
+    context: z.string().optional().describe("추가 컨텍스트나 요구사항")
+}, async ({ context }) => {
+    const prompt = `${SystemPrompt}${context ? `\n\n추가 컨텍스트: ${context}` : ''}`;
+    return {
+        messages: [
+            {
+                role: "user",
+                content: {
+                    type: "text",
+                    text: prompt
+                }
+            }
+        ]
+    };
 });
 async function main() {
     const transport = new StdioServerTransport();
