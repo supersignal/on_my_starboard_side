@@ -11,7 +11,7 @@
     "README.md"
   ],
   "bin": {
-    "integration-guide-mcp": "dist/server.js"
+    "on_my_starboard_side": "dist/server.js"
   },
   "author": {
     "name": "IT기술지원",
