@@ -347,7 +347,7 @@ RATE_LIMIT_MAX_REQUESTS=100
 ### 📦 NPM 패키지 설치 (권장)
 
 ```bash
-npm install -g @nicepayments/developers-guide-mcp
+npm install -g @supersignal/on_my_starboard_side
 ```
 
 ### 🔧 Cursor AI IDE 설정
@@ -363,7 +363,7 @@ Cursor의 MCP 설정 파일에 다음을 추가하세요:
   "mcpServers": {
     "developers-guide-mcp": {
       "command": "npx",
-      "args": ["-y", "@nicepayments/developers-guide-mcp@latest"]
+      "args": ["-y", "@supersignal/on_my_starboard_side@latest"]
     }
   }
 }

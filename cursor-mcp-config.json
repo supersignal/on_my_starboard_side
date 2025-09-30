@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "developers-guide-mcp": {
-      "command": "npx",
-      "args": ["-y", "@nicepayments/developers-guide-mcp@latest"]
-    }
-  }
-}
