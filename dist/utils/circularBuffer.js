@@ -25,15 +25,15 @@ export class CircularBuffer {
         }
     }
     /**
-     * 모든 요소 반환
+     * 모든 요소 반환 (최적화된 버전)
      */
     toArray() {
         if (this.count === 0)
             return [];
-        const result = [];
+        const result = new Array(this.count);
         for (let i = 0; i < this.count; i++) {
             const index = (this.head + i) % this.capacity;
-            result.push(this.buffer[index]);
+            result[i] = this.buffer[index];
         }
         return result;
     }

@@ -27,18 +27,18 @@ export enum ErrorCode {
 export interface AppError {
   code: ErrorCode;
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
   timestamp: Date;
   requestId?: string;
 }
 
 export class SearchError extends Error implements AppError {
   public code: ErrorCode;
-  public details?: any;
+  public details?: Record<string, unknown>;
   public timestamp: Date;
   public requestId?: string;
 
-  constructor(message: string, details?: any, requestId?: string) {
+  constructor(message: string, details?: Record<string, unknown>, requestId?: string) {
     super(message);
     this.code = ErrorCode.SEARCH_FAILED;
     this.details = details;
@@ -50,11 +50,11 @@ export class SearchError extends Error implements AppError {
 
 export class PaymentError extends Error implements AppError {
   public code: ErrorCode;
-  public details?: any;
+  public details?: Record<string, unknown>;
   public timestamp: Date;
   public requestId?: string;
 
-  constructor(message: string, code: ErrorCode, details?: any, requestId?: string) {
+  constructor(message: string, code: ErrorCode, details?: Record<string, unknown>, requestId?: string) {
     super(message);
     this.code = code;
     this.details = details;
@@ -66,11 +66,11 @@ export class PaymentError extends Error implements AppError {
 
 export class ConfigurationError extends Error implements AppError {
   public code: ErrorCode;
-  public details?: any;
+  public details?: Record<string, unknown>;
   public timestamp: Date;
   public requestId?: string;
 
-  constructor(message: string, details?: any, requestId?: string) {
+  constructor(message: string, details?: Record<string, unknown>, requestId?: string) {
     super(message);
     this.code = ErrorCode.CONFIGURATION_ERROR;
     this.details = details;

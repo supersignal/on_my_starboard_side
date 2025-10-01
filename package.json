@@ -51,13 +51,19 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc",
+    "build:prod": "tsc --project tsconfig.prod.json",
     "lint": "eslint . --ext .js,.ts",
+    "lint:fix": "eslint . --ext .js,.ts --fix",
     "start": "node dist/server.js",
+    "start:prod": "NODE_ENV=production node dist/server.js",
     "start-http": "node dist/server.http.js",
     "start-hybrid": "node dist/server.hybrid.js",
     "test:ci": "CI=true vitest --run",
-    "prepublishOnly": "npm run build",
+    "test:watch": "vitest --watch",
+    "prepublishOnly": "npm run build:prod",
     "version": "npm run build && git add -A dist",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "analyze": "npm ls --depth=0",
+    "clean": "rm -rf dist && rm -rf node_modules/.cache"
   }
 }

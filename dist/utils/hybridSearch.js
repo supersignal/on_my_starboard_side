@@ -1,5 +1,6 @@
 import { EnhancedBM25Calculator } from './enhancedBM25.js';
 import { TextPreprocessor } from './textPreprocessor.js';
+import { SearchCache } from './searchCache.js';
 /**
  * 하이브리드 검색 엔진
  * BM25와 임베딩 기반 검색을 결합하여 검색 성능 향상
@@ -8,6 +9,7 @@ export class HybridSearchEngine {
     bm25Calculator;
     config;
     documentEmbeddings = new Map();
+    searchCache;
     queryEmbeddings = new Map();
     constructor(config) {
         this.config = {
@@ -17,6 +19,7 @@ export class HybridSearchEngine {
             useQueryExpansion: config?.useQueryExpansion ?? true
         };
         this.bm25Calculator = new EnhancedBM25Calculator();
+        this.searchCache = new SearchCache(50, 10 * 60 * 1000); // 10분 캐시
     }
     /**
      * 문서 임베딩 사전 계산
@@ -36,6 +39,13 @@ export class HybridSearchEngine {
      * 하이브리드 검색 실행
      */
     async search(query, documents, topN = 10) {
+        // 캐시 키 생성
+        const cacheKey = `${query.toLowerCase()}_${topN}`;
+        // 캐시에서 결과 조회
+        const cachedResult = this.searchCache.get(cacheKey);
+        if (cachedResult) {
+            return cachedResult;
+        }
         // 1. 쿼리 전처리 및 확장
         const processedQuery = this.config.useQueryExpansion
             ? this.bm25Calculator.expandQuery(query)
@@ -49,10 +59,13 @@ export class HybridSearchEngine {
         // 4. 결과 결합
         const combinedResults = this.combineResults(bm25Results, embeddingResults);
         // 5. 점수 기반 정렬 및 필터링
-        return combinedResults
+        const finalResults = combinedResults
             .filter(result => result.combinedScore >= this.config.minScore)
             .sort((a, b) => b.combinedScore - a.combinedScore)
             .slice(0, topN);
+        // 캐시에 결과 저장
+        this.searchCache.set(cacheKey, finalResults);
+        return finalResults;
     }
     /**
      * 간단한 TF-IDF 기반 임베딩 계산

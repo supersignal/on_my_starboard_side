@@ -23,6 +23,7 @@ export class EnhancedBM25Calculator {
   private config: BM25Config;
   private documentStats: Map<number, DocumentStats> = new Map();
   private globalTermStats: Map<string, GlobalTermStats> = new Map();
+  private precomputedStats: boolean = false;
 
   constructor(config?: Partial<BM25Config>) {
     this.config = {
@@ -76,8 +77,9 @@ export class EnhancedBM25Calculator {
     documents: NicePaymentsDocument[],
     topN: number = 10
   ): EnhancedBM25Result[] {
-    if (this.documentStats.size === 0) {
+    if (!this.precomputedStats || this.documentStats.size === 0) {
       this.precomputeDocumentStats(documents);
+      this.precomputedStats = true;
     }
 
     const queryTerms = TextPreprocessor.preprocessQuery(query);

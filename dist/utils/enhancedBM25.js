@@ -4,6 +4,7 @@ export class EnhancedBM25Calculator {
     config;
     documentStats = new Map();
     globalTermStats = new Map();
+    precomputedStats = false;
     constructor(config) {
         this.config = {
             k1: config?.k1 ?? CONFIG.search.bm25.k1,
@@ -44,8 +45,9 @@ export class EnhancedBM25Calculator {
      * 개선된 BM25 점수 계산
      */
     calculateScores(query, documents, topN = 10) {
-        if (this.documentStats.size === 0) {
+        if (!this.precomputedStats || this.documentStats.size === 0) {
             this.precomputeDocumentStats(documents);
+            this.precomputedStats = true;
         }
         const queryTerms = TextPreprocessor.preprocessQuery(query);
         const allChunks = documents.flatMap(doc => doc.getChunks());
