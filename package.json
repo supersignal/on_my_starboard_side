@@ -58,6 +58,9 @@
     "test:ci": "CI=true vitest --run",
     "prepublishOnly": "npm run build",
     "version": "npm run build && git add -A dist",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "deploy": "npm run build && npm publish",
+    "deploy:force": "npm run build && npm unpublish @supersignal/on_my_starboard_side@$(node -p \"require('./package.json').version\") --force && npm publish",
+    "deploy:clean": "npm run build && npm unpublish @supersignal/on_my_starboard_side --force && npm publish"
   }
 }
