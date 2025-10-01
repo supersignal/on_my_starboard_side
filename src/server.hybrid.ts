@@ -9,6 +9,7 @@ import {
   getDocumentsByKeyword,
   repository,
 } from "./schemas/service.js";
+import { SystemPrompt } from "./constants/base-prompt.js";
 import { apiKeyAuth, optionalApiKeyAuth, AuthenticatedRequest } from './middleware/auth.js';
 import { searchRateLimit, generalRateLimit, healthRateLimit } from './middleware/rate-limit.js';
 import { errorHandler, notFoundHandler, requestIdMiddleware, asyncHandler } from './middleware/error-handler.js';
@@ -253,132 +254,193 @@ mcpServer.tool(
   }
 );
 
-// 실제 결제 MCP 도구들 (설정이 있는 경우에만)
-if (realPaymentService) {
-  mcpServer.tool(
-    "real_payment",
-    `나이스페이먼츠 실제 결제 API를 호출합니다.\n⚠️ 주의: 실제 결제가 발생합니다! testMode를 false로 설정해야 합니다.`,
-    RealPaymentRequestSchema,
-    async (request) => {
-      try {
-        const response = await realPaymentService.processPayment(request);
-        return {
-          content: [{
-            type: "text",
-            text: `실제 결제 결과:\n${JSON.stringify(response, null, 2)}`
-          }]
-        };
-      } catch (e) {
-        const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
-        return {
-          content: [{
-            type: "text",
-            text: `실제 결제 실패: ${errorMessage}`
-          }],
-          isError: true
-        };
-      }
-    }
-  );
-
-  mcpServer.tool(
-    "real_cancel",
-    `나이스페이먼츠 실제 결제 취소 API를 호출합니다.\n⚠️ 주의: 실제 취소가 발생합니다! testMode를 false로 설정해야 합니다.`,
-    RealCancelRequestSchema,
-    async (request) => {
-      try {
-        const response = await realPaymentService.processCancel(request);
-        return {
-          content: [{
-            type: "text",
-            text: `실제 취소 결과:\n${JSON.stringify(response, null, 2)}`
-          }]
-        };
-      } catch (e) {
-        const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
-        return {
-          content: [{
-            type: "text",
-            text: `실제 취소 실패: ${errorMessage}`
-          }],
-          isError: true
-        };
-      }
-    }
-  );
-
-  mcpServer.tool(
-    "real_payment_status",
-    `나이스페이먼츠 실제 결제 상태 조회 API를 호출합니다.\n⚠️ 주의: 실제 API를 호출합니다! testMode를 false로 설정해야 합니다.`,
-    RealPaymentStatusSchema,
-    async (request) => {
-      try {
-        const response = await realPaymentService.getPaymentStatus(request);
-        return {
-          content: [{
-            type: "text",
-            text: `실제 결제 상태 조회 결과:\n${JSON.stringify(response, null, 2)}`
-          }]
-        };
-      } catch (e) {
-        const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
-        return {
-          content: [{
-            type: "text",
-            text: `실제 결제 상태 조회 실패: ${errorMessage}`
-          }],
-          isError: true
-        };
-      }
-    }
-  );
-
-  mcpServer.tool(
-    "real_payment_config",
-    `나이스페이먼츠 실제 결제 서비스 설정을 조회합니다.`,
-    {},
-    async () => {
-      try {
-        const config = realPaymentService.getConfig();
-        const maskedConfig = {
-          ...config,
-          merchantKey: config.merchantKey ? '***' + config.merchantKey.slice(-4) : 'Not Set',
-          merchantId: config.merchantId || 'Not Set'
-        };
-        
-        return {
-          content: [{
-            type: "text",
-            text: `실제 결제 서비스 설정:\n${JSON.stringify(maskedConfig, null, 2)}`
-          }]
-        };
-      } catch (e) {
-        const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
-        return {
-          content: [{
-            type: "text",
-            text: `설정 조회 실패: ${errorMessage}`
-          }],
-          isError: true
-        };
-      }
-    }
-  );
-} else {
-  mcpServer.tool(
-    "real_payment_info",
-    `실제 결제 서비스가 설정되지 않았습니다.\n환경변수 NICEPAY_MERCHANT_ID와 NICEPAY_MERCHANT_KEY를 설정해주세요.`,
-    {},
-    async () => {
+// 실제 결제 MCP 도구들 (항상 등록, 설정에 따라 동작)
+mcpServer.tool(
+  "real_payment",
+  `나이스페이먼츠 실제 결제 API를 호출합니다.\n⚠️ 주의: 실제 결제가 발생합니다! testMode를 false로 설정해야 합니다.`,
+  RealPaymentRequestSchema,
+  async (request) => {
+    if (!realPaymentService) {
       return {
         content: [{
           type: "text",
           text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 PAYMENT_TEST_GUIDE.md를 참고하세요.`
-        }]
+        }],
+        isError: true
       };
     }
-  );
-}
+    
+    try {
+      const response = await realPaymentService.processPayment(request);
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 결과:\n${JSON.stringify(response, null, 2)}`
+        }]
+      };
+    } catch (e) {
+      const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 실패: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+mcpServer.tool(
+  "real_cancel",
+  `나이스페이먼츠 실제 결제 취소 API를 호출합니다.\n⚠️ 주의: 실제 취소가 발생합니다! testMode를 false로 설정해야 합니다.`,
+  RealCancelRequestSchema,
+  async (request) => {
+    if (!realPaymentService) {
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 PAYMENT_TEST_GUIDE.md를 참고하세요.`
+        }],
+        isError: true
+      };
+    }
+    
+    try {
+      const response = await realPaymentService.processCancel(request);
+      return {
+        content: [{
+          type: "text",
+          text: `실제 취소 결과:\n${JSON.stringify(response, null, 2)}`
+        }]
+      };
+    } catch (e) {
+      const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
+      return {
+        content: [{
+          type: "text",
+          text: `실제 취소 실패: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+mcpServer.tool(
+  "real_payment_status",
+  `나이스페이먼츠 실제 결제 상태 조회 API를 호출합니다.\n⚠️ 주의: 실제 API를 호출합니다! testMode를 false로 설정해야 합니다.`,
+  RealPaymentStatusSchema,
+  async (request) => {
+    if (!realPaymentService) {
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 PAYMENT_TEST_GUIDE.md를 참고하세요.`
+        }],
+        isError: true
+      };
+    }
+    
+    try {
+      const response = await realPaymentService.getPaymentStatus(request);
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 상태 조회 결과:\n${JSON.stringify(response, null, 2)}`
+        }]
+      };
+    } catch (e) {
+      const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 상태 조회 실패: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+mcpServer.tool(
+  "real_payment_config",
+  `나이스페이먼츠 실제 결제 서비스 설정을 조회합니다.`,
+  {},
+  async () => {
+    if (!realPaymentService) {
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 PAYMENT_TEST_GUIDE.md를 참고하세요.`
+        }],
+        isError: true
+      };
+    }
+    
+    try {
+      const config = realPaymentService.getConfig();
+      const maskedConfig = {
+        ...config,
+        merchantKey: config.merchantKey ? '***' + config.merchantKey.slice(-4) : 'Not Set',
+        merchantId: config.merchantId || 'Not Set'
+      };
+      
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 서비스 설정:\n${JSON.stringify(maskedConfig, null, 2)}`
+        }]
+      };
+    } catch (e) {
+      const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
+      return {
+        content: [{
+          type: "text",
+          text: `설정 조회 실패: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+mcpServer.tool(
+  "real_payment_info",
+  `실제 결제 서비스가 설정되지 않았습니다.\n환경변수 NICEPAY_MERCHANT_ID와 NICEPAY_MERCHANT_KEY를 설정해주세요.`,
+  {},
+  async () => {
+    return {
+      content: [{
+        type: "text",
+        text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 PAYMENT_TEST_GUIDE.md를 참고하세요.`
+      }]
+    };
+  }
+);
+
+// 프롬프트 등록
+mcpServer.prompt(
+  "java-spring-expert",
+  "Java 21과 Spring Boot 전문가 프롬프트",
+  {
+    context: z.string().optional().describe("추가 컨텍스트나 요구사항")
+  },
+  async ({ context }) => {
+    const prompt = `${SystemPrompt}${context ? `\n\n추가 컨텍스트: ${context}` : ''}`;
+    return {
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: prompt
+          }
+        }
+      ]
+    };
+  }
+);
 
 // HTTP 서버 (외부 접근용 REST 브리지)
 const app = express();
@@ -531,70 +593,112 @@ app.get('/mcp/test_list_payments', asyncHandler(async (req: Request, res: Respon
   }
 }));
 
-// 실제 결제 API 엔드포인트들 (설정이 있는 경우에만)
-if (realPaymentService) {
-  app.post('/mcp/real_payment', asyncHandler(async (req: Request, res: Response) => {
-    const parsed = RealPaymentRequestZodSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ isError: true, error: parsed.error.flatten() });
-    }
-    try {
-      const response = await realPaymentService.processPayment(parsed.data);
-      res.json({ content: [{ type: 'text', text: `실제 결제 결과:\n${JSON.stringify(response, null, 2)}` }] });
-    } catch (e) {
-      res.status(500).json({ isError: true, error: e instanceof Error ? e.message : 'unknown error' });
-    }
-  }));
-
-  app.post('/mcp/real_cancel', asyncHandler(async (req: Request, res: Response) => {
-    const parsed = RealCancelRequestZodSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ isError: true, error: parsed.error.flatten() });
-    }
-    try {
-      const response = await realPaymentService.processCancel(parsed.data);
-      res.json({ content: [{ type: 'text', text: `실제 취소 결과:\n${JSON.stringify(response, null, 2)}` }] });
-    } catch (e) {
-      res.status(500).json({ isError: true, error: e instanceof Error ? e.message : 'unknown error' });
-    }
-  }));
-
-  app.post('/mcp/real_payment_status', asyncHandler(async (req: Request, res: Response) => {
-    const parsed = RealPaymentStatusZodSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ isError: true, error: parsed.error.flatten() });
-    }
-    try {
-      const response = await realPaymentService.getPaymentStatus(parsed.data);
-      res.json({ content: [{ type: 'text', text: `실제 결제 상태 조회 결과:\n${JSON.stringify(response, null, 2)}` }] });
-    } catch (e) {
-      res.status(500).json({ isError: true, error: e instanceof Error ? e.message : 'unknown error' });
-    }
-  }));
-
-  app.get('/mcp/real_payment_config', asyncHandler(async (req: Request, res: Response) => {
-    try {
-      const config = realPaymentService.getConfig();
-      const maskedConfig = {
-        ...config,
-        merchantKey: config.merchantKey ? '***' + config.merchantKey.slice(-4) : 'Not Set',
-        merchantId: config.merchantId || 'Not Set'
-      };
-      res.json({ content: [{ type: 'text', text: `실제 결제 서비스 설정:\n${JSON.stringify(maskedConfig, null, 2)}` }] });
-    } catch (e) {
-      res.status(500).json({ isError: true, error: e instanceof Error ? e.message : 'unknown error' });
-    }
-  }));
-} else {
-  app.get('/mcp/real_payment_info', asyncHandler(async (req: Request, res: Response) => {
-    res.json({ 
+// 실제 결제 API 엔드포인트들 (항상 등록, 설정에 따라 동작)
+app.post('/mcp/real_payment', asyncHandler(async (req: Request, res: Response) => {
+  if (!realPaymentService) {
+    return res.status(400).json({ 
+      isError: true, 
+      error: 'Real payment service not configured',
       content: [{ 
         type: 'text', 
         text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 PAYMENT_TEST_GUIDE.md를 참고하세요.`
       }] 
     });
-  }));
-}
+  }
+  
+  const parsed = RealPaymentRequestZodSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ isError: true, error: parsed.error.flatten() });
+  }
+  try {
+    const response = await realPaymentService.processPayment(parsed.data);
+    res.json({ content: [{ type: 'text', text: `실제 결제 결과:\n${JSON.stringify(response, null, 2)}` }] });
+  } catch (e) {
+    res.status(500).json({ isError: true, error: e instanceof Error ? e.message : 'unknown error' });
+  }
+}));
+
+app.post('/mcp/real_cancel', asyncHandler(async (req: Request, res: Response) => {
+  if (!realPaymentService) {
+    return res.status(400).json({ 
+      isError: true, 
+      error: 'Real payment service not configured',
+      content: [{ 
+        type: 'text', 
+        text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 PAYMENT_TEST_GUIDE.md를 참고하세요.`
+      }] 
+    });
+  }
+  
+  const parsed = RealCancelRequestZodSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ isError: true, error: parsed.error.flatten() });
+  }
+  try {
+    const response = await realPaymentService.processCancel(parsed.data);
+    res.json({ content: [{ type: 'text', text: `실제 취소 결과:\n${JSON.stringify(response, null, 2)}` }] });
+  } catch (e) {
+    res.status(500).json({ isError: true, error: e instanceof Error ? e.message : 'unknown error' });
+  }
+}));
+
+app.post('/mcp/real_payment_status', asyncHandler(async (req: Request, res: Response) => {
+  if (!realPaymentService) {
+    return res.status(400).json({ 
+      isError: true, 
+      error: 'Real payment service not configured',
+      content: [{ 
+        type: 'text', 
+        text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 PAYMENT_TEST_GUIDE.md를 참고하세요.`
+      }] 
+    });
+  }
+  
+  const parsed = RealPaymentStatusZodSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ isError: true, error: parsed.error.flatten() });
+  }
+  try {
+    const response = await realPaymentService.getPaymentStatus(parsed.data);
+    res.json({ content: [{ type: 'text', text: `실제 결제 상태 조회 결과:\n${JSON.stringify(response, null, 2)}` }] });
+  } catch (e) {
+    res.status(500).json({ isError: true, error: e instanceof Error ? e.message : 'unknown error' });
+  }
+}));
+
+app.get('/mcp/real_payment_config', asyncHandler(async (req: Request, res: Response) => {
+  if (!realPaymentService) {
+    return res.status(400).json({ 
+      isError: true, 
+      error: 'Real payment service not configured',
+      content: [{ 
+        type: 'text', 
+        text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 PAYMENT_TEST_GUIDE.md를 참고하세요.`
+      }] 
+    });
+  }
+  
+  try {
+    const config = realPaymentService.getConfig();
+    const maskedConfig = {
+      ...config,
+      merchantKey: config.merchantKey ? '***' + config.merchantKey.slice(-4) : 'Not Set',
+      merchantId: config.merchantId || 'Not Set'
+    };
+    res.json({ content: [{ type: 'text', text: `실제 결제 서비스 설정:\n${JSON.stringify(maskedConfig, null, 2)}` }] });
+  } catch (e) {
+    res.status(500).json({ isError: true, error: e instanceof Error ? e.message : 'unknown error' });
+  }
+}));
+
+app.get('/mcp/real_payment_info', asyncHandler(async (req: Request, res: Response) => {
+  res.json({ 
+    content: [{ 
+      type: 'text', 
+      text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 PAYMENT_TEST_GUIDE.md를 참고하세요.`
+    }] 
+  });
+}));
 
 // 404 핸들러
 app.use(notFoundHandler);
