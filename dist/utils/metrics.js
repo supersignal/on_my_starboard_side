@@ -1,27 +1,38 @@
+import { CircularBuffer } from './circularBuffer.js';
 export class Metrics {
     searchCount = 0;
-    searchLatency = [];
+    searchLatency;
     errorCount = 0;
+    constructor(maxLatencyRecords = 100) {
+        this.searchLatency = new CircularBuffer(maxLatencyRecords);
+    }
     recordSearch(latency) {
         this.searchCount++;
         this.searchLatency.push(latency);
-        // 최근 100개만 유지
-        if (this.searchLatency.length > 100) {
-            this.searchLatency.shift();
-        }
     }
     recordError() {
         this.errorCount++;
     }
     getStats() {
-        const avgLatency = this.searchLatency.length > 0
-            ? this.searchLatency.reduce((a, b) => a + b, 0) / this.searchLatency.length
-            : 0;
+        const avgLatency = this.searchLatency.isEmpty()
+            ? 0
+            : this.searchLatency.average();
         return {
             totalSearches: this.searchCount,
-            averageLatency: avgLatency,
+            averageLatency: Math.round(avgLatency * 100) / 100, // 소수점 2자리 반올림
             totalErrors: this.errorCount,
-            successRate: this.searchCount > 0 ? ((this.searchCount - this.errorCount) / this.searchCount) * 100 : 0
+            successRate: this.searchCount > 0
+                ? Math.round(((this.searchCount - this.errorCount) / this.searchCount) * 100 * 100) / 100
+                : 0,
+            recentLatencies: this.searchLatency.toArray()
         };
+    }
+    /**
+     * 메트릭 초기화
+     */
+    reset() {
+        this.searchCount = 0;
+        this.errorCount = 0;
+        this.searchLatency = new CircularBuffer(100);
     }
 }

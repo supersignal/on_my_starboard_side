@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { SecurityUtils } from '../utils/security.js';
 
 export interface AuthenticatedRequest extends Request {
   apiKey?: string;
@@ -31,7 +32,8 @@ export const apiKeyAuth = (req: AuthenticatedRequest, res: Response, next: NextF
   }
 
   if (!validKeys.includes(apiKey)) {
-    console.warn(`[WARN] Invalid API key attempt: ${apiKey.substring(0, 8)}...`);
+    const hashedKey = SecurityUtils.hashApiKey(apiKey);
+    console.warn(`[WARN] Invalid API key attempt: ${hashedKey}`);
     return res.status(403).json({ 
       error: 'Invalid API key',
       message: 'The provided API key is not valid'

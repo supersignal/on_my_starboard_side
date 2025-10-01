@@ -1,3 +1,4 @@
+import { SecurityUtils } from '../utils/security.js';
 /**
  * API 키 인증 미들웨어
  * X-API-Key 헤더를 통해 인증을 수행합니다.
@@ -20,7 +21,8 @@ export const apiKeyAuth = (req, res, next) => {
         });
     }
     if (!validKeys.includes(apiKey)) {
-        console.warn(`[WARN] Invalid API key attempt: ${apiKey.substring(0, 8)}...`);
+        const hashedKey = SecurityUtils.hashApiKey(apiKey);
+        console.warn(`[WARN] Invalid API key attempt: ${hashedKey}`);
         return res.status(403).json({
             error: 'Invalid API key',
             message: 'The provided API key is not valid'
