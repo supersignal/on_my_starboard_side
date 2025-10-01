@@ -59,6 +59,9 @@
     "prepublishOnly": "npm run build",
     "version": "npm run build && git add -A dist",
     "postversion": "git push && git push --tags",
+    "commit:feat": "git add . && git commit -m \"feat: $npm_config_message\"",
+    "commit:fix": "git add . && git commit -m \"fix: $npm_config_message\"",
+    "commit:docs": "git add . && git commit -m \"docs: $npm_config_message\"",
     "deploy": "npm run build && npm publish",
     "deploy:force": "npm run build && npm unpublish @supersignal/on_my_starboard_side@$(node -p \"require('./package.json').version\") --force && npm publish",
     "deploy:clean": "npm run build && npm unpublish @supersignal/on_my_starboard_side --force && npm publish"
