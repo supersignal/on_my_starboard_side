@@ -11,7 +11,7 @@
     "README.md"
   ],
   "bin": {
-    "on_my_starboard_side": "dist/server.js"
+    "on_my_starboard_side": "dist/server.cmd"
   },
   "author": {
     "name": "IT기술지원",
