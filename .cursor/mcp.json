@@ -2,7 +2,7 @@
   "mcpServers": {
     "nicepayments": {
       "command": "node",
-      "args": ["dist/server.js"],
+      "args": ["dist/server.hybrid.js"],
       "env": {
         "NICEPAY_DATA_PATH": "https://github.com/supersignal/going_on_hypersonic/blob/main/src/llm/llms.txt",
         "NODE_ENV": "development",

@@ -245,133 +245,171 @@ server.tool(
     }
 );
 
-// 실제 결제 도구들 (설정이 있는 경우에만)
-if (realPaymentService) {
-  server.tool(
-    "real_payment",
-    `나이스페이먼츠 실제 결제 API를 호출합니다.\n⚠️ 주의: 실제 결제가 발생합니다! testMode를 false로 설정해야 합니다.`,
-    RealPaymentRequestSchema,
-    async (request) => {
-      try {
-        const response = await realPaymentService.processPayment(request);
-        return {
-          content: [{
-            type: "text",
-            text: `실제 결제 결과:\n${JSON.stringify(response, null, 2)}`
-          }]
-        };
-      } catch (e) {
-        const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
-        return {
-          content: [{
-            type: "text",
-            text: `실제 결제 실패: ${errorMessage}`
-          }],
-          isError: true
-        };
-      }
-    }
-  );
-
-  server.tool(
-    "real_cancel",
-    `나이스페이먼츠 실제 결제 취소 API를 호출합니다.\n⚠️ 주의: 실제 취소가 발생합니다! testMode를 false로 설정해야 합니다.`,
-    RealCancelRequestSchema,
-    async (request) => {
-      try {
-        const response = await realPaymentService.processCancel(request);
-        return {
-          content: [{
-            type: "text",
-            text: `실제 취소 결과:\n${JSON.stringify(response, null, 2)}`
-          }]
-        };
-      } catch (e) {
-        const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
-        return {
-          content: [{
-            type: "text",
-            text: `실제 취소 실패: ${errorMessage}`
-          }],
-          isError: true
-        };
-      }
-    }
-  );
-
-  server.tool(
-    "real_payment_status",
-    `나이스페이먼츠 실제 결제 상태 조회 API를 호출합니다.\n⚠️ 주의: 실제 API를 호출합니다! testMode를 false로 설정해야 합니다.`,
-    RealPaymentStatusSchema,
-    async (request) => {
-      try {
-        const response = await realPaymentService.getPaymentStatus(request);
-        return {
-          content: [{
-            type: "text",
-            text: `실제 결제 상태 조회 결과:\n${JSON.stringify(response, null, 2)}`
-          }]
-        };
-      } catch (e) {
-        const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
-        return {
-          content: [{
-            type: "text",
-            text: `실제 결제 상태 조회 실패: ${errorMessage}`
-          }],
-          isError: true
-        };
-      }
-    }
-  );
-
-  server.tool(
-    "real_payment_config",
-    `나이스페이먼츠 실제 결제 서비스 설정을 조회합니다.`,
-    {},
-    async () => {
-      try {
-        const config = realPaymentService.getConfig();
-        // 민감한 정보는 마스킹
-        const maskedConfig = {
-          ...config,
-          merchantKey: config.merchantKey ? '***' + config.merchantKey.slice(-4) : 'Not Set',
-          merchantId: config.merchantId || 'Not Set'
-        };
-        
-        return {
-          content: [{
-            type: "text",
-            text: `실제 결제 서비스 설정:\n${JSON.stringify(maskedConfig, null, 2)}`
-          }]
-        };
-      } catch (e) {
-        const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
-        return {
-          content: [{
-            type: "text",
-            text: `설정 조회 실패: ${errorMessage}`
-          }],
-          isError: true
-        };
-      }
-    }
-  );
-} else {
-  server.tool(
-    "real_payment_info",
-    `실제 결제 서비스가 설정되지 않았습니다.\n환경변수 NICEPAY_MERCHANT_ID와 NICEPAY_MERCHANT_KEY를 설정해주세요.`,
-    {},
-    async () => {
+// 실제 결제 도구들 (항상 등록, 설정에 따라 동작)
+server.tool(
+  "real_payment",
+  `나이스페이먼츠 실제 결제 API를 호출합니다.\n⚠️ 주의: 실제 결제가 발생합니다! testMode를 false로 설정해야 합니다.`,
+  RealPaymentRequestSchema,
+  async (request) => {
+    if (!realPaymentService) {
       return {
         content: [{
           type: "text",
-          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 PAYMENT_TEST_GUIDE.md를 참고하세요.`
-        }]
+          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+        }],
+        isError: true
       };
     }
-  );
-}
+    
+    try {
+      const response = await realPaymentService.processPayment(request);
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 결과:\n${JSON.stringify(response, null, 2)}`
+        }]
+      };
+    } catch (e) {
+      const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 실패: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+server.tool(
+  "real_cancel",
+  `나이스페이먼츠 실제 결제 취소 API를 호출합니다.\n⚠️ 주의: 실제 취소가 발생합니다! testMode를 false로 설정해야 합니다.`,
+  RealCancelRequestSchema,
+  async (request) => {
+    if (!realPaymentService) {
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+        }],
+        isError: true
+      };
+    }
+    
+    try {
+      const response = await realPaymentService.processCancel(request);
+      return {
+        content: [{
+          type: "text",
+          text: `실제 취소 결과:\n${JSON.stringify(response, null, 2)}`
+        }]
+      };
+    } catch (e) {
+      const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
+      return {
+        content: [{
+          type: "text",
+          text: `실제 취소 실패: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+server.tool(
+  "real_payment_status",
+  `나이스페이먼츠 실제 결제 상태 조회 API를 호출합니다.\n⚠️ 주의: 실제 API를 호출합니다! testMode를 false로 설정해야 합니다.`,
+  RealPaymentStatusSchema,
+  async (request) => {
+    if (!realPaymentService) {
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+        }],
+        isError: true
+      };
+    }
+    
+    try {
+      const response = await realPaymentService.getPaymentStatus(request);
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 상태 조회 결과:\n${JSON.stringify(response, null, 2)}`
+        }]
+      };
+    } catch (e) {
+      const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 상태 조회 실패: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+server.tool(
+  "real_payment_config",
+  `나이스페이먼츠 실제 결제 서비스 설정을 조회합니다.`,
+  {},
+  async () => {
+    if (!realPaymentService) {
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+        }],
+        isError: true
+      };
+    }
+    
+    try {
+      const config = realPaymentService.getConfig();
+      // 민감한 정보는 마스킹
+      const maskedConfig = {
+        ...config,
+        merchantKey: config.merchantKey ? '***' + config.merchantKey.slice(-4) : 'Not Set',
+        merchantId: config.merchantId || 'Not Set'
+      };
+      
+      return {
+        content: [{
+          type: "text",
+          text: `실제 결제 서비스 설정:\n${JSON.stringify(maskedConfig, null, 2)}`
+        }]
+      };
+    } catch (e) {
+      const errorMessage = isNativeError(e) ? e.message : "알 수 없는 오류가 발생했습니다.";
+      return {
+        content: [{
+          type: "text",
+          text: `설정 조회 실패: ${errorMessage}`
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+server.tool(
+  "real_payment_info",
+  `실제 결제 서비스 설정 안내를 제공합니다.`,
+  {},
+  async () => {
+    return {
+      content: [{
+        type: "text",
+        text: `실제 결제 서비스 설정 안내:\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+      }]
+    };
+  }
+);
 
 // 프롬프트 등록
 server.prompt(
