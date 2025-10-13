@@ -1,4 +1,4 @@
-# 나이스페이먼츠 실제 결제 연동 가이드
+# 나이스정보통신 실제 결제 연동 가이드
 
 ## ⚠️ 중요 경고
 
@@ -9,11 +9,11 @@
 
 ## 🚀 실제 결제 설정 방법
 
-### 1. 나이스페이먼츠 계약 체결
+### 1. 나이스정보통신 계약 체결
 
-실제 결제를 사용하려면 먼저 나이스페이먼츠와 정식 계약을 체결해야 합니다:
+실제 결제를 사용하려면 먼저 나이스정보통신과 정식 계약을 체결해야 합니다:
 
-1. **나이스페이먼츠 영업팀 연락**
+1. **나이스정보통신 영업팀 연락**
    - 이메일: sales@nicepay.co.kr
    - 전화: 1588-1234
    - 웹사이트: https://www.nicepay.co.kr
@@ -35,7 +35,7 @@
 `.env` 파일을 생성하고 다음 정보를 입력하세요:
 
 ```bash
-# 나이스페이먼츠 실제 결제 설정
+# 나이스정보통신 실제 결제 설정
 NICEPAY_MERCHANT_ID=your_actual_merchant_id
 NICEPAY_MERCHANT_KEY=your_actual_merchant_key
 NICEPAY_BASE_URL=https://api.nicepay.co.kr
@@ -261,7 +261,7 @@ if (paymentResponse.success === false) {
 
 **인증 오류:**
 ```
-Error: 나이스페이먼츠 설정이 올바르지 않습니다.
+Error: 나이스정보통신 설정이 올바르지 않습니다.
 ```
 → 환경변수 `NICEPAY_MERCHANT_ID`와 `NICEPAY_MERCHANT_KEY` 확인
 
@@ -290,7 +290,7 @@ grep "ERROR" logs/payment.log
 grep "ORDER_20241201_001" logs/payment.log
 ```
 
-### 3. 나이스페이먼츠 지원팀 연락
+### 3. 나이스정보통신 지원팀 연락
 
 - **기술 지원**: it@nicepay.co.kr
 - **영업 문의**: sales@nicepay.co.kr
@@ -298,18 +298,18 @@ grep "ORDER_20241201_001" logs/payment.log
 
 ## 📚 추가 자료
 
-- [나이스페이먼츠 개발자 센터](https://developers.nicepay.co.kr)
+- [나이스정보통신 개발자 센터](https://developers.nicepay.co.kr)
 - [API 문서](https://developers.nicepay.co.kr/docs)
 - [샘플 코드](https://github.com/nicepayments/samples)
 - [FAQ](https://developers.nicepay.co.kr/faq)
 
 ## ⚖️ 법적 고지
 
-1. **결제 서비스 제공자 책임**: 나이스페이먼츠
+1. **결제 서비스 제공자 책임**: 나이스정보통신
 2. **가맹점 책임**: 결제 시스템 운영 및 고객 관리
 3. **개인정보 보호**: 개인정보보호법 준수
 4. **전자상거래법**: 전자상거래 등에서의 소비자보호에 관한 법률 준수
 
 ---
 
-**⚠️ 주의사항**: 이 가이드는 참고용이며, 실제 구현 시에는 나이스페이먼츠의 최신 API 문서와 법적 요구사항을 반드시 확인하세요.
+**⚠️ 주의사항**: 이 가이드는 참고용이며, 실제 구현 시에는 나이스정보통신의 최신 API 문서와 법적 요구사항을 반드시 확인하세요.

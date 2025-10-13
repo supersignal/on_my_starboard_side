@@ -32,7 +32,7 @@ try {
     realPaymentService = createRealPaymentService();
     console.log('실제 결제 서비스가 초기화되었습니다.');
   } else {
-    console.log('나이스페이먼츠 설정이 없어 실제 결제 서비스를 사용할 수 없습니다.');
+    console.log('나이스정보통신 설정이 없어 실제 결제 서비스를 사용할 수 없습니다.');
   }
 } catch (error) {
   console.warn('실제 결제 서비스 초기화 실패:', error);
@@ -159,7 +159,7 @@ app.post('/mcp/real_payment', async (req, res) => {
       error: '실제 결제 서비스가 설정되지 않았습니다.',
       content: [{ 
         type: 'text', 
-        text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+        text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스정보통신과 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
       }] 
     });
   }
@@ -183,7 +183,7 @@ app.post('/mcp/real_cancel', async (req, res) => {
       error: '실제 결제 서비스가 설정되지 않았습니다.',
       content: [{ 
         type: 'text', 
-        text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+        text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스정보통신과 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
       }] 
     });
   }
@@ -207,7 +207,7 @@ app.post('/mcp/real_payment_status', async (req, res) => {
       error: '실제 결제 서비스가 설정되지 않았습니다.',
       content: [{ 
         type: 'text', 
-        text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+        text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스정보통신과 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
       }] 
     });
   }
@@ -231,7 +231,7 @@ app.get('/mcp/real_payment_config', async (_req, res) => {
       error: '실제 결제 서비스가 설정되지 않았습니다.',
       content: [{ 
         type: 'text', 
-        text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+        text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스정보통신과 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
       }] 
     });
   }
@@ -253,7 +253,7 @@ app.get('/mcp/real_payment_info', async (_req, res) => {
   res.json({ 
     content: [{ 
       type: 'text', 
-      text: `실제 결제 서비스 설정 안내:\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+      text: `실제 결제 서비스 설정 안내:\n\n설정 방법:\n1. 나이스정보통신과 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
     }] 
   });
 });

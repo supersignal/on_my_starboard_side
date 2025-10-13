@@ -35,7 +35,7 @@ export const RealPaymentRequestZodSchema = z.object(RealPaymentRequestSchema);
 export const RealCancelRequestZodSchema = z.object(RealCancelRequestSchema);
 export const RealPaymentStatusZodSchema = z.object(RealPaymentStatusSchema);
 
-// 나이스페이먼츠 API 설정
+// 나이스정보통신 API 설정
 export interface NicePayConfig {
   merchantId: string;
   merchantKey: string;
@@ -85,7 +85,7 @@ export interface RealPaymentStatusResponse {
   rawResponse?: any;
 }
 
-// 나이스페이먼츠 실제 결제 서비스 클래스
+// 나이스정보통신 실제 결제 서비스 클래스
 export class RealPaymentService {
   private config: NicePayConfig;
 
@@ -93,7 +93,7 @@ export class RealPaymentService {
     this.config = config;
   }
 
-  // 나이스페이먼츠 API 서명 생성
+  // 나이스정보통신 API 서명 생성
   private generateSignature(data: Record<string, any>): string {
     const sortedKeys = Object.keys(data).sort();
     const queryString = sortedKeys
@@ -106,7 +106,7 @@ export class RealPaymentService {
       .digest('hex');
   }
 
-  // 나이스페이먼츠 API 호출
+  // 나이스정보통신 API 호출
   private async callNicePayAPI(endpoint: string, data: Record<string, any>): Promise<any> {
     const url = `${this.config.baseUrl}${endpoint}`;
     
@@ -316,7 +316,7 @@ export function createRealPaymentService(): RealPaymentService {
   };
 
   if (!config.merchantId || !config.merchantKey) {
-    throw new Error('나이스페이먼츠 설정이 올바르지 않습니다. NICEPAY_MERCHANT_ID와 NICEPAY_MERCHANT_KEY를 설정해주세요.');
+    throw new Error('나이스정보통신 설정이 올바르지 않습니다. NICEPAY_MERCHANT_ID와 NICEPAY_MERCHANT_KEY를 설정해주세요.');
   }
 
   return new RealPaymentService(config);

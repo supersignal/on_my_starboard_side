@@ -40,7 +40,7 @@ try {
     realPaymentService = createRealPaymentService();
     console.log('실제 결제 서비스가 초기화되었습니다.');
   } else {
-    console.log('나이스페이먼츠 설정이 없어 실제 결제 서비스를 사용할 수 없습니다.');
+    console.log('나이스정보통신 설정이 없어 실제 결제 서비스를 사용할 수 없습니다.');
   }
 } catch (error) {
   console.warn('실제 결제 서비스 초기화 실패:', error);
@@ -48,7 +48,7 @@ try {
 
 const server = new McpServer({
     name: "nicepayments-developers-guide",
-    description: "MCP-compatible toolset for integrating with nicepayments systems. Includes tools for retrieving LLM-structured text and fetching actual documentation through URLs. (나이스페이먼츠 시스템과의 연동을 위한 MCP 도구 모음입니다. LLM이 활용할 수 있는 텍스트 및 관련 문서를 가져오는 기능을 포함합니다.)",
+    description: "MCP-compatible toolset for integrating with nicepayments systems. Includes tools for retrieving LLM-structured text and fetching actual documentation through URLs. (나이스정보통신 시스템과의 연동을 위한 MCP 도구 모음입니다. LLM이 활용할 수 있는 텍스트 및 관련 문서를 가져오는 기능을 포함합니다.)",
     version: "1.0.0",
 });
 
@@ -60,7 +60,7 @@ const GetDocumentSchema = {
 // get_documents 단일 엔드포인트로 통합
 server.tool(
     "get_documents",
-    `나이스페이먼츠 문서들을 버전 구분 없이 조회합니다.\n키워드 기반으로 v1, v2, general 문서를 모두 검색합니다.`,
+    `나이스정보통신 문서들을 버전 구분 없이 조회합니다.\n키워드 기반으로 v1, v2, general 문서를 모두 검색합니다.`,
     GetDocumentSchema,
     async ({ keywords }: { keywords: string[] }) => {
         // 키워드 기반 전체 문서 검색
@@ -104,7 +104,7 @@ server.tool(
 // 결제 테스트 도구들
 server.tool(
     "test_payment",
-    `나이스페이먼츠 결제 API 테스트를 수행합니다.\n테스트 모드에서만 동작하며, 실제 결제는 발생하지 않습니다.`,
+    `나이스정보통신 결제 API 테스트를 수행합니다.\n테스트 모드에서만 동작하며, 실제 결제는 발생하지 않습니다.`,
     PaymentRequestSchema,
     async (request) => {
         try {
@@ -130,7 +130,7 @@ server.tool(
 
 server.tool(
     "test_cancel",
-    `나이스페이먼츠 결제 취소 API 테스트를 수행합니다.\n테스트 모드에서만 동작하며, 실제 취소는 발생하지 않습니다.`,
+    `나이스정보통신 결제 취소 API 테스트를 수행합니다.\n테스트 모드에서만 동작하며, 실제 취소는 발생하지 않습니다.`,
     CancelRequestSchema,
     async (request) => {
         try {
@@ -156,7 +156,7 @@ server.tool(
 
 server.tool(
     "test_payment_status",
-    `나이스페이먼츠 결제 상태 조회 API 테스트를 수행합니다.\n테스트 모드에서만 동작합니다.`,
+    `나이스정보통신 결제 상태 조회 API 테스트를 수행합니다.\n테스트 모드에서만 동작합니다.`,
     PaymentStatusSchema,
     async (request) => {
         try {
@@ -248,14 +248,14 @@ server.tool(
 // 실제 결제 도구들 (항상 등록, 설정에 따라 동작)
 server.tool(
   "real_payment",
-  `나이스페이먼츠 실제 결제 API를 호출합니다.\n⚠️ 주의: 실제 결제가 발생합니다! testMode를 false로 설정해야 합니다.`,
+  `나이스정보통신 실제 결제 API를 호출합니다.\n⚠️ 주의: 실제 결제가 발생합니다! testMode를 false로 설정해야 합니다.`,
   RealPaymentRequestSchema,
   async (request) => {
     if (!realPaymentService) {
       return {
         content: [{
           type: "text",
-          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스정보통신과 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
         }],
         isError: true
       };
@@ -284,14 +284,14 @@ server.tool(
 
 server.tool(
   "real_cancel",
-  `나이스페이먼츠 실제 결제 취소 API를 호출합니다.\n⚠️ 주의: 실제 취소가 발생합니다! testMode를 false로 설정해야 합니다.`,
+  `나이스정보통신 실제 결제 취소 API를 호출합니다.\n⚠️ 주의: 실제 취소가 발생합니다! testMode를 false로 설정해야 합니다.`,
   RealCancelRequestSchema,
   async (request) => {
     if (!realPaymentService) {
       return {
         content: [{
           type: "text",
-          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스정보통신과 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
         }],
         isError: true
       };
@@ -320,14 +320,14 @@ server.tool(
 
 server.tool(
   "real_payment_status",
-  `나이스페이먼츠 실제 결제 상태 조회 API를 호출합니다.\n⚠️ 주의: 실제 API를 호출합니다! testMode를 false로 설정해야 합니다.`,
+  `나이스정보통신 실제 결제 상태 조회 API를 호출합니다.\n⚠️ 주의: 실제 API를 호출합니다! testMode를 false로 설정해야 합니다.`,
   RealPaymentStatusSchema,
   async (request) => {
     if (!realPaymentService) {
       return {
         content: [{
           type: "text",
-          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스정보통신과 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
         }],
         isError: true
       };
@@ -356,14 +356,14 @@ server.tool(
 
 server.tool(
   "real_payment_config",
-  `나이스페이먼츠 실제 결제 서비스 설정을 조회합니다.`,
+  `나이스정보통신 실제 결제 서비스 설정을 조회합니다.`,
   {},
   async () => {
     if (!realPaymentService) {
       return {
         content: [{
           type: "text",
-          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+          text: `실제 결제 서비스가 설정되지 않았습니다.\n\n설정 방법:\n1. 나이스정보통신과 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
         }],
         isError: true
       };
@@ -405,7 +405,7 @@ server.tool(
     return {
       content: [{
         type: "text",
-        text: `실제 결제 서비스 설정 안내:\n\n설정 방법:\n1. 나이스페이먼츠와 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
+        text: `실제 결제 서비스 설정 안내:\n\n설정 방법:\n1. 나이스정보통신과 계약 체결\n2. 상점 ID와 키 발급\n3. 환경변수 설정:\n   - NICEPAY_MERCHANT_ID=your_merchant_id\n   - NICEPAY_MERCHANT_KEY=your_merchant_key\n   - NICEPAY_TEST_MODE=false\n\n자세한 내용은 REAL_PAYMENT_GUIDE.md를 참고하세요.`
       }]
     };
   }

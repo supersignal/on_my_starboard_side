@@ -258,7 +258,7 @@
         <!-- 슬라이드 1: 타이틀 -->
         <div class="slide active title-slide">
             <h1>MCP 서버 개발부터 AI IDE 연결까지의 여정</h1>
-            <div class="subtitle">나이스페이먼츠 개발자 가이드 MCP 서버 구축 과제</div>
+            <div class="subtitle">나이스정보통신 개발자 가이드 MCP 서버 구축 과제</div>
             <div class="author">AI 시대의 개발자 경험 혁신</div>
         </div>
 
@@ -437,7 +437,7 @@
                     <h3>문서 소스 구조</h3>
                     <ul>
                         <li><strong>llms.txt:</strong> 문서 링크 목록 (GitHub 원격 참조)</li>
-                        <li><strong>markdown/:</strong> 나이스페이먼츠 개발자 문서들</li>
+                        <li><strong>markdown/:</strong> 나이스정보통신 개발자 문서들</li>
                         <li><strong>메타데이터:</strong> 제목, 설명, 키워드 자동 추출</li>
                     </ul>
                 </div>
@@ -516,7 +516,7 @@
 // MCP 도구 등록 예시
 server.tool(
     "get_documents",
-    "나이스페이먼츠 문서들을 키워드로 검색합니다.",
+    "나이스정보통신 문서들을 키워드로 검색합니다.",
     GetDocumentSchema,
     async ({ keywords }) => {
         return await getDocumentsByKeyword(keywords);

@@ -1,6 +1,6 @@
-# 나이스페이먼츠 Developers MCP 서버
+# 나이스정보통신 Developers MCP 서버
 
-나이스페이먼츠 개발자 문서(마크다운)를 수집·청킹하고 BM25로 검색해 MCP(Model Context Protocol) 및 HTTP API로 제공하는 TypeScript 서버입니다.
+나이스정보통신 개발자 문서(마크다운)를 수집·청킹하고 BM25로 검색해 MCP(Model Context Protocol) 및 HTTP API로 제공하는 TypeScript 서버입니다.
 
 ## 📋 목차
 - [프로젝트 개요](#프로젝트-개요)
@@ -19,7 +19,7 @@
 
 ## 프로젝트 개요
 
-나이스페이먼츠 개발자 문서를 수집·청킹하고 BM25로 검색해 MCP(Model Context Protocol) 및 HTTP API로 제공하는 서비스입니다.
+나이스정보통신 개발자 문서를 수집·청킹하고 BM25로 검색해 MCP(Model Context Protocol) 및 HTTP API로 제공하는 서비스입니다.
 
 **본 MCP 서버의 목표**: 고객사가 MCP 서버를 통해 관련 내용(결제승인, 결제취소, 결제창 연결)을 손쉽게 수집, 참조하고 생성형 도구(Claude, Cursor, ChatGPT, GitHub Copilot 등)를 이용한 소스 코드 작성을 지원함으로써 결제 기능을 보다 편리하고 신뢰성 있게 구현하도록 돕는 것입니다.
 
@@ -39,7 +39,7 @@
   - 형식: `[제목](링크): 설명`
   - 예시: `[인증 결제 API](https://github.com/supersignal/going_on_hypersonic/blob/main/markdown/01.manual-auth.markdown): PC/MOBILE 결제창 호출하고 인증 결제를 구현할 수 있는 서비스와 주요 파라미터 설명 그리고 샘플코드`
 
-- **마크다운 파일들**: 나이스페이먼츠 개발자 문서들
+- **마크다운 파일들**: 나이스정보통신 개발자 문서들
   - 위치: GitHub `markdown/` 디렉토리
   - 지원 문서 유형: 
     - **API**: 인증결제, 카드키인, 카드빌링, 가상계좌, 취소, 결제조회, 결제통보, 영수증
